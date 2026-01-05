@@ -1,5 +1,5 @@
 // src/pages/property/PropertyDetailPage.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPropertyById, addToWishlist } from '../../api/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -34,8 +34,14 @@ const PropertyDetailPage = () => {
     'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'
   ];
 
-  // Load property data
+  // Load property data (with ref to prevent double loading in React StrictMode)
+  const hasLoadedRef = useRef(false);
+  
   useEffect(() => {
+    // Prevent double loading in React StrictMode
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    
     const loadProperty = async () => {
       setLoading(true);
       try {
@@ -44,6 +50,18 @@ const PropertyDetailPage = () => {
         
         if (response.success || response.data) {
           const propertyData = response.property || response.data || response;
+          
+          // Ensure images array is properly formatted
+          if (propertyData.images && Array.isArray(propertyData.images)) {
+            propertyData.images = propertyData.images.map(img => {
+              if (typeof img === 'string') {
+                // If it's already a full URL, use it; otherwise prepend API URL
+                return img.startsWith('http') ? img : `${import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'}${img.startsWith('/') ? '' : '/'}${img}`;
+              }
+              return img;
+            });
+          }
+          
           setProperty(propertyData);
           setInWishlist(false);
         } else {
@@ -58,6 +76,11 @@ const PropertyDetailPage = () => {
     };
 
     loadProperty();
+    
+    // Reset ref when id changes
+    return () => {
+      hasLoadedRef.current = false;
+    };
   }, [id]);
 
   // MOVED: Define seller and isAvailable after property is loaded
@@ -224,15 +247,26 @@ const PropertyDetailPage = () => {
                 pagination={{ clickable: true }}
                 className="h-96"
               >
-                {(property.images && property.images.length > 0 ? property.images : images).map((image, index) => (
-                  <SwiperSlide key={index}>
-                    <img
-                      src={image}
-                      alt={`Property view ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </SwiperSlide>
-                ))}
+                {(property.images && property.images.length > 0 ? property.images : images).map((image, index) => {
+                  // Handle both URL strings and ensure proper image URL format
+                  const imageUrl = typeof image === 'string' 
+                    ? (image.startsWith('http') ? image : `${image.startsWith('/') ? '' : '/'}${image}`)
+                    : image;
+                  
+                  return (
+                    <SwiperSlide key={index}>
+                      <img
+                        src={imageUrl}
+                        alt={`Property view ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          e.target.src = `https://via.placeholder.com/800x600?text=Image+${index + 1}`;
+                        }}
+                      />
+                    </SwiperSlide>
+                  );
+                })}
               </Swiper>
             </div>
 

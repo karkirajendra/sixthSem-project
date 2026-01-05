@@ -7,6 +7,7 @@ import SearchFilters from '../../components/SearchFilters';
 import SuperSearchBar from '../../components/superSearch/SuperSearchBar';
 import { FaSort, FaFilter } from 'react-icons/fa';
 import RecommendationSection from '../../components/recommendation/RecommendationSection';
+import { getFormattedPropertyImage } from '../../utils/imageUtils';
 
 const PropertiesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,15 +51,17 @@ const PropertiesPage = () => {
 
   // Helper function to normalize property data from API
   const normalizeProperty = useCallback((property) => {
+    // Get formatted image URL using utility function
+    const formattedImageUrl = getFormattedPropertyImage(property);
+    
     return {
       ...property,
       // Ensure id exists (MongoDB uses _id)
       id: property.id || property._id,
-      // Ensure imageUrl exists for PropertyCard component
-      imageUrl:
-        property.imageUrl ||
-        (property.images && property.images[0]) ||
-        '/placeholder-property.jpg',
+      // Set formatted imageUrl for PropertyCard component
+      imageUrl: formattedImageUrl,
+      // Keep original images array for reference
+      images: property.images || [],
       // Ensure other required fields have defaults
       views: property.views || { total: 0, anonymous: 0 },
       status: property.status || 'available',

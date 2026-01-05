@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -13,6 +14,11 @@ cloudinary.config({
 // Function to upload image to Cloudinary
 export const uploadToCloudinary = async (filePath, options = {}) => {
   try {
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
+
     const defaultOptions = {
       folder: 'sajilo-basai/properties',
       resource_type: 'image',
@@ -31,9 +37,14 @@ export const uploadToCloudinary = async (filePath, options = {}) => {
     };
   } catch (error) {
     console.error('Cloudinary upload error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      filePath: filePath,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Not set',
+    });
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'Unknown Cloudinary error',
     };
   }
 };

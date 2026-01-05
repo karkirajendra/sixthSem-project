@@ -562,23 +562,87 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
               }`}
             >
               {currentListings.length > 0 ? (
-                currentListings.map((listing, index) => (
-                  <tr
-                    key={listing.id}
-                    className={`transition-colors ${
-                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedListings.includes(listing.id)}
-                        onChange={() => handleSelectListing(listing.id)}
-                        className="rounded border-gray-300"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
+                currentListings.map((listing, index) => {
+                  // Helper function to format image URL
+                  const getImageUrl = (imageUrl) => {
+                    if (!imageUrl) return null;
+                    
+                    // If it's already a full URL, use it
+                    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                      return imageUrl;
+                    }
+                    
+                    // Get API URL from env or default
+                    const apiUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
+                    
+                    // If it starts with /uploads or uploads/, prepend API URL
+                    if (imageUrl.startsWith('/uploads/')) {
+                      return `${apiUrl}${imageUrl}`;
+                    }
+                    if (imageUrl.startsWith('uploads/')) {
+                      return `${apiUrl}/${imageUrl}`;
+                    }
+                    
+                    // If it starts with /, prepend API URL
+                    if (imageUrl.startsWith('/')) {
+                      return `${apiUrl}${imageUrl}`;
+                    }
+                    
+                    // Otherwise, assume it's in uploads folder
+                    return `${apiUrl}/uploads/${imageUrl}`;
+                  };
+                  
+                  // Get the first image from various possible fields
+                  const rawImageUrl = listing.images?.[0] || 
+                                    listing.image || 
+                                    listing.imageUrl ||
+                                    (Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : null);
+                  
+                  // Debug: Log image data
+                  if (index === 0) {
+                    console.log('Listing image data:', {
+                      listingId: listing.id,
+                      images: listing.images,
+                      image: listing.image,
+                      imageUrl: listing.imageUrl,
+                      rawImageUrl: rawImageUrl
+                    });
+                  }
+                  
+                  const imageUrl = getImageUrl(rawImageUrl);
+                  
+                  return (
+                    <tr
+                      key={listing.id}
+                      className={`transition-colors ${
+                        isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedListings.includes(listing.id)}
+                          onChange={() => handleSelectListing(listing.id)}
+                          className="rounded border-gray-300"
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          {/* Property Image */}
+                          <div className="flex-shrink-0 h-12 w-12">
+                            <img
+                              src={imageUrl || 'https://via.placeholder.com/48?text=No+Image'}
+                              alt={listing.title || 'Property'}
+                              className="h-12 w-12 rounded-md object-cover border border-gray-200"
+                              onError={(e) => {
+                                // Fallback to placeholder if image fails to load
+                                if (e.target.src !== 'https://via.placeholder.com/48?text=No+Image') {
+                                  console.error('Image failed to load:', e.target.src);
+                                  e.target.src = 'https://via.placeholder.com/48?text=No+Image';
+                                }
+                              }}
+                            />
+                          </div>
                         <div>
                           <p
                             className={`font-medium ${

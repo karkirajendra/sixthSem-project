@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Play, Pause, MapPin } from 'lucide-react';
 import PropertyCard from '../components/PropertyCard';
 import { getLocationBasedRecommendations } from '../api/api';
+import { getFormattedPropertyImage } from '../utils/imageUtils';
 
 // Format distance function
 const formatDistance = (meters) => {
@@ -24,10 +25,14 @@ const LocationBasedRecommendations = ({ userLocation, searchCriteria }) => {
 
   // Helper function to normalize property data
   const normalizeProperty = useCallback((property) => {
+    // Get formatted image URL using utility function
+    const formattedImageUrl = getFormattedPropertyImage(property);
+    
     return {
       ...property,
       id: property.id || property._id,
-      imageUrl: property.imageUrl || (property.images && property.images[0]) || '/placeholder-property.jpg',
+      imageUrl: formattedImageUrl,
+      images: property.images || [],
       views: property.views || { total: 0, anonymous: 0 },
       status: property.status || 'available',
       featured: property.featured || false,

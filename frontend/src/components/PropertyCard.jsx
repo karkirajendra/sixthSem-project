@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaMapMarkerAlt, FaBed, FaBath, FaRulerCombined, FaEye, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { addToWishlist, removeFromWishlist, getWishlistState } from '../api/api';
+import { getFormattedPropertyImage } from '../utils/imageUtils';
 import toast from 'react-hot-toast';
 
 const PropertyCard = ({ property, onWishlistUpdate }) => {
@@ -127,13 +128,28 @@ const PropertyCard = ({ property, onWishlistUpdate }) => {
   const propertyStatus = status?.toLowerCase() || 'available';
   const viewCount = views?.total || 0;
 
+  // Get formatted image URL using utility function
+  // Pass the full property object to get image from any possible field
+  const formattedImageUrl = getFormattedPropertyImage({
+    imageUrl,
+    images: property?.images,
+    image: property?.image,
+  });
+
   return (
     <div className="card group animate-fade-in">
       <div className="relative overflow-hidden">
         <img 
-          src={imageUrl || '/placeholder-property.jpg'} 
+          src={formattedImageUrl} 
           alt={title || 'Property'} 
           className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            if (e.target.src !== 'https://via.placeholder.com/400x300?text=No+Image') {
+              console.error('Image failed to load:', e.target.src, 'Property:', title);
+              e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+            }
+          }}
         />
         
         <div className={`absolute top-4 left-4 ${getTypeColor(propertyType)} px-2 py-1 rounded text-xs font-medium`}>

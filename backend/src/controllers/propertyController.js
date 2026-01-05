@@ -121,21 +121,45 @@ export const getPropertyById = asyncHandler(async (req, res) => {
     throw new Error('Property not found');
   }
 
-  // Increment view count
-  const userAgent = req.get('User-Agent');
-  const isLoggedIn = req.user ? true : false;
+  // Increment view count (prevent double counting)
+  // Use a simple in-memory cache to track recent views per IP/session
+  const viewCache = global.viewCache || new Map();
+  global.viewCache = viewCache;
+  
+  const sessionId = req.headers['x-session-id'] || req.ip || 'anonymous';
+  const viewKey = `${req.params.id}_${sessionId}`;
+  const lastViewTime = viewCache.get(viewKey) || 0;
+  const now = Date.now();
+  const oneMinute = 60 * 1000; // 1 minute cooldown
+  
+  // Only increment if not viewed in the last minute
+  if (now - lastViewTime > oneMinute) {
+    const isLoggedIn = req.user ? true : false;
 
-  property.views.total += 1;
-  if (isLoggedIn) {
-    property.views.loggedIn += 1;
-  } else {
-    property.views.anonymous += 1;
+    property.views.total += 1;
+    if (isLoggedIn) {
+      property.views.loggedIn += 1;
+    } else {
+      property.views.anonymous += 1;
+    }
+
+    await property.save();
+    
+    // Store view timestamp in cache
+    viewCache.set(viewKey, now);
+    
+    // Clean up old cache entries (older than 1 hour)
+    if (viewCache.size > 1000) {
+      for (const [key, time] of viewCache.entries()) {
+        if (now - time > 60 * 60 * 1000) { // 1 hour
+          viewCache.delete(key);
+        }
+      }
+    }
+
+    // Track property view in analytics
+    await trackPropertyView(req.params.id, req);
   }
-
-  await property.save();
-
-  // Track property view in analytics
-  await trackPropertyView(req.params.id, req);
 
   res.json({
     success: true,
@@ -309,6 +333,33 @@ export const searchProperties = asyncHandler(async (req, res) => {
       .split(' ')
       .filter((term) => term.length > 1);
 
+    // Map common search terms to property types
+    const typeMapping = {
+      'room': 'room',
+      'rooms': 'room',
+      'flat': 'flat',
+      'flats': 'flat',
+      'apartment': 'apartment',
+      'apartments': 'apartment',
+      'house': 'house',
+      'houses': 'house',
+      'studio': 'studio',
+      'studios': 'studio',
+      'penthouse': 'penthouse',
+      'commercial': 'commercial',
+      'office': 'commercial',
+      'shop': 'commercial',
+    };
+
+    // Check if search term matches a property type
+    let matchedType = null;
+    for (const term of searchTerms) {
+      if (typeMapping[term]) {
+        matchedType = typeMapping[term];
+        break;
+      }
+    }
+
     // Create flexible search patterns
     const searchPatterns = searchTerms.map((term) => ({
       $or: [
@@ -318,8 +369,16 @@ export const searchProperties = asyncHandler(async (req, res) => {
         { type: { $regex: term, $options: 'i' } },
         { roomType: { $regex: term, $options: 'i' } },
         { flatType: { $regex: term, $options: 'i' } },
+        { 'address.city': { $regex: term, $options: 'i' } },
+        { 'address.street': { $regex: term, $options: 'i' } },
+        { 'address.state': { $regex: term, $options: 'i' } },
       ],
     }));
+
+    // If type was matched, add it to query
+    if (matchedType && !type) {
+      query.type = matchedType;
+    }
 
     // Check for price-related queries
     const pricePatterns = [

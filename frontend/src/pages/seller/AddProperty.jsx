@@ -554,9 +554,14 @@ const createShortSearchLocation = (result) => {
         const result = await uploadSingleImage(acceptedFiles[0]);
         console.log('Single upload result:', result);
         if (result.success && result.imageUrl) {
+          // Ensure the image URL is properly formatted
+          const imageUrl = result.imageUrl.startsWith('http') 
+            ? result.imageUrl 
+            : `${import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'}${result.imageUrl.startsWith('/') ? '' : '/'}${result.imageUrl}`;
+          
           setPropertyData((prev) => ({
             ...prev,
-            images: [...prev.images, result.imageUrl],
+            images: [...prev.images, imageUrl],
           }));
           toast.success('Image uploaded successfully!');
         } else {
@@ -567,12 +572,21 @@ const createShortSearchLocation = (result) => {
         const result = await uploadMultipleImages(acceptedFiles);
         console.log('Multiple upload result:', result);
         if (result.success && result.imageUrls && result.imageUrls.length > 0) {
+          // Ensure all image URLs are properly formatted
+          const formattedUrls = result.imageUrls
+            .filter((url) => url)
+            .map(url => 
+              url.startsWith('http') 
+                ? url 
+                : `${import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'}${url.startsWith('/') ? '' : '/'}${url}`
+            );
+          
           setPropertyData((prev) => ({
             ...prev,
-            images: [...prev.images, ...result.imageUrls.filter((url) => url)],
+            images: [...prev.images, ...formattedUrls],
           }));
           toast.success(
-            `Successfully uploaded ${result.imageUrls.length} images!`
+            `Successfully uploaded ${formattedUrls.length} images!`
           );
         } else {
           toast.error(result.message || 'Failed to upload images');

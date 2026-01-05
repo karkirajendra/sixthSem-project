@@ -61,20 +61,7 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          role
-        }),
-        credentials: 'include' // Important for cookies/sessions
-      });
-
+      // Use only the register function from AuthContext to avoid duplicate API calls
       if (!register) {
         throw new Error('Authentication context not available.');
       }

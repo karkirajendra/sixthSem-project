@@ -16,37 +16,38 @@ export const uploadImage = async (req, res) => {
       });
     }
 
-    // Upload to Cloudinary
-    const uploadResult = await uploadToCloudinary(req.file.path, {
-      folder: 'sajilo-basai/properties',
-    });
-
-    // Delete local file after upload
-    fs.unlinkSync(req.file.path);
-
-    if (!uploadResult.success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to upload image to cloud storage',
-        error: uploadResult.error,
-      });
+    // Use local storage - return file URL
+    const fileUrl = `${req.protocol}://${req.get('host')}/${req.file.path.replace(/\\/g, '/')}`;
+    
+    // Get image dimensions if possible (optional)
+    let width = null;
+    let height = null;
+    
+    // Try to get image dimensions using a simple method
+    try {
+      // You can add image processing library later if needed
+      // For now, we'll just return the URL
+    } catch (dimError) {
+      // Ignore dimension errors
     }
-
-    res.status(200).json({
+    
+    return res.status(200).json({
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        url: uploadResult.url,
-        publicId: uploadResult.publicId,
-        width: uploadResult.width,
-        height: uploadResult.height,
+        url: fileUrl,
+        publicId: req.file.filename,
+        width: width,
+        height: height,
       },
     });
   } catch (error) {
     // Clean up local file if it exists
     if (req.file && req.file.path) {
       try {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       } catch (unlinkError) {
         console.error('Error deleting local file:', unlinkError);
       }
@@ -57,6 +58,7 @@ export const uploadImage = async (req, res) => {
       success: false,
       message: 'Internal server error during image upload',
       error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 };
@@ -71,45 +73,23 @@ export const uploadMultipleImages = async (req, res) => {
       });
     }
 
-    const filePaths = req.files.map((file) => file.path);
-
-    // Upload all images to Cloudinary
-    const uploadResults = await uploadMultipleToCloudinary(filePaths, {
-      folder: 'sajilo-basai/properties',
+    // Use local storage - return file URLs
+    const uploadedFiles = req.files.map((file) => {
+      const fileUrl = `${req.protocol}://${req.get('host')}/${file.path.replace(/\\/g, '/')}`;
+      return {
+        url: fileUrl,
+        publicId: file.filename,
+        width: null,
+        height: null,
+      };
     });
-
-    // Delete local files after upload
-    filePaths.forEach((filePath) => {
-      try {
-        fs.unlinkSync(filePath);
-      } catch (error) {
-        console.error('Error deleting local file:', error);
-      }
-    });
-
-    // Filter successful uploads
-    const successfulUploads = uploadResults.filter((result) => result.success);
-    const failedUploads = uploadResults.filter((result) => !result.success);
-
-    if (successfulUploads.length === 0) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to upload any images',
-        errors: failedUploads.map((result) => result.error),
-      });
-    }
 
     res.status(200).json({
       success: true,
-      message: `Successfully uploaded ${successfulUploads.length} out of ${req.files.length} images`,
+      message: `Successfully uploaded ${req.files.length} images`,
       data: {
-        uploaded: successfulUploads.map((result) => ({
-          url: result.url,
-          publicId: result.publicId,
-          width: result.width,
-          height: result.height,
-        })),
-        failed: failedUploads.length,
+        uploaded: uploadedFiles,
+        failed: 0,
       },
     });
   } catch (error) {

@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import {
   uploadImage,
   uploadMultipleImages,
@@ -10,10 +11,53 @@ import { protect, roleAuth } from '../middlewares/auth.js';
 
 const router = express.Router();
 
+// Test route to verify router is working
+router.get('/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Image routes are working',
+    path: req.originalUrl,
+    baseUrl: req.baseUrl,
+    originalUrl: req.originalUrl
+  });
+});
+
+// Debug route to list all available routes
+router.get('/debug', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Image routes debug info',
+    availableRoutes: [
+      'GET /api/images/test',
+      'GET /api/images/debug',
+      'POST /api/images/upload-single (requires auth: admin/seller)',
+      'POST /api/images/upload-multiple (requires auth: admin/seller)',
+      'DELETE /api/images/delete (requires auth: admin/seller)'
+    ],
+    requestInfo: {
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl,
+      baseUrl: req.baseUrl
+    }
+  });
+});
+
+// Ensure uploads directory exists
+const uploadsDir = 'uploads/';
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory');
+}
+
 // Configure multer for image uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // Ensure directory exists before saving
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -43,6 +87,10 @@ const upload = multer({
 // Single image upload (for admin/sellers)
 router.post(
   '/upload-single',
+  (req, res, next) => {
+    console.log('Upload single route hit:', req.method, req.path);
+    next();
+  },
   protect,
   roleAuth('admin', 'seller'),
   upload.single('image'),

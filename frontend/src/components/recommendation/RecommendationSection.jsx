@@ -3,6 +3,7 @@ import PropertyCard from '../PropertyCard';
 import { getLocationBasedRecommendations } from '../../api/api';
 import { getCachedLocation, formatDistanceFromMeters } from '../../utils/LocationService';
 import { PROPERTIES } from '../../api/api'; // Fallback mock data
+import { getFormattedPropertyImage } from '../../utils/imageUtils';
 
 const RecommendationSection = ({ 
   propertyId, 
@@ -148,7 +149,7 @@ const RecommendationSection = ({
               price: property.price,
               type: property.type,
               location: property.location,
-              imageUrl: property.images?.[0] || property.imageUrl || '/placeholder-property.jpg',
+              imageUrl: getFormattedPropertyImage(property),
               views: property.views || { total: 0 },
               featured: property.featured || false,
               inWishlist: property.inWishlist || false,

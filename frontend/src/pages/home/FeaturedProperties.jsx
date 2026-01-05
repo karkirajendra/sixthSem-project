@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import PropertyCard from '../../components/PropertyCard';
 import { getFeaturedProperties, getAllProperties } from '../../api/api';
+import { getFormattedPropertyImage } from '../../utils/imageUtils';
 
 const FeaturedProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -17,15 +18,17 @@ const FeaturedProperties = () => {
 
   // Helper function to normalize property data (similar to PropertiesPage)
   const normalizeProperty = useCallback((property) => {
+    // Get formatted image URL using utility function
+    const formattedImageUrl = getFormattedPropertyImage(property);
+    
     return {
       ...property,
       // Ensure id exists (MongoDB uses _id)
       id: property.id || property._id,
-      // Ensure imageUrl exists for PropertyCard component
-      imageUrl:
-        property.imageUrl ||
-        (property.images && property.images[0]) ||
-        '/placeholder-property.jpg',
+      // Set formatted imageUrl for PropertyCard component
+      imageUrl: formattedImageUrl,
+      // Keep original images array for reference
+      images: property.images || [],
       // Ensure other required fields have defaults
       views: property.views || { total: 0, anonymous: 0 },
       status: property.status || 'available',
