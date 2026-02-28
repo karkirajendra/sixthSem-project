@@ -1123,6 +1123,58 @@ export const adminApi = {
       ];
     }
   },
+
+  // Admin -> User messaging (uses shared chat API)
+  sendUserMessage: async (userId, text) => {
+    try {
+      await ensureAuthenticated();
+
+      if (!userId || !text) {
+        return { success: false, message: 'User ID and message text are required' };
+      }
+
+      // First get or create a chat room between admin (current user) and target user
+      const roomResponse = await fetch(`${API_URL}/api/chat/room`, {
+        method: 'POST',
+        headers: createHeaders(true),
+        body: JSON.stringify({
+          otherUserId: userId,
+          isAdminChat: true,
+        }),
+      });
+
+      const roomData = await handleApiResponse(roomResponse);
+      const roomId = roomData?._id;
+
+      if (!roomId) {
+        return { success: false, message: 'Failed to create or load chat room' };
+      }
+
+      // Send the message into that room
+      const messageResponse = await fetch(`${API_URL}/api/chat/message`, {
+        method: 'POST',
+        headers: createHeaders(true),
+        body: JSON.stringify({
+          text,
+          receiverId: userId,
+          roomId,
+        }),
+      });
+
+      const messageData = await handleApiResponse(messageResponse);
+
+      return {
+        success: true,
+        data: {
+          room: roomData,
+          message: messageData,
+        },
+      };
+    } catch (error) {
+      console.error('Error sending admin message to user:', error);
+      return { success: false, message: error.message || 'Failed to send message' };
+    }
+  },
 };
 
 // Legacy exports for backward compatibility
@@ -1136,6 +1188,8 @@ export const trackAnalyticsEvent = adminApi.trackEvent;
 export const getDashboardStats = adminApi.getDashboardStats;
 export const getListings = adminApi.getListings;
 export const getUserList = adminApi.getUserList;
+
+export const sendUserMessage = adminApi.sendUserMessage;
 
 // Property management exports
 export const getPropertyDetails = adminApi.getPropertyDetails;

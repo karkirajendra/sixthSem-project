@@ -203,6 +203,7 @@ const UserTable = ({ isDark }) => {
     deleteUser,
     addUser,
     getUserDetails,
+    sendUserMessage,
   } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -214,6 +215,8 @@ const UserTable = ({ isDark }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -287,6 +290,24 @@ const UserTable = ({ isDark }) => {
       }
     } catch (error) {
       console.error('Error deleting user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!selectedUser || !messageText.trim()) return;
+
+    setLoading(true);
+    try {
+      const result = await sendUserMessage(selectedUser.id, messageText.trim());
+      if (result.success) {
+        setShowMessageModal(false);
+        setMessageText('');
+      }
+    } catch (error) {
+      console.error('Error sending message to user:', error);
     } finally {
       setLoading(false);
     }
@@ -611,6 +632,22 @@ const UserTable = ({ isDark }) => {
                         >
                           <FiTrash2 className="h-4 w-4" />
                         </button>
+                        <button
+                          className={`p-2 rounded-lg transition-colors ${
+                            isDark
+                              ? 'hover:bg-gray-700 text-gray-400 hover:text-green-400'
+                              : 'hover:bg-green-50 text-gray-500 hover:text-green-600'
+                          }`}
+                          title="Send message"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowMessageModal(true);
+                            setMessageText('');
+                          }}
+                          disabled={loading}
+                        >
+                          <FiPlus className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -796,6 +833,73 @@ const UserTable = ({ isDark }) => {
           setSelectedUser(null);
         }}
       />
+
+      {/* Message User Modal */}
+      <Modal
+        isOpen={showMessageModal}
+        onClose={() => {
+          setShowMessageModal(false);
+          setSelectedUser(null);
+          setMessageText('');
+        }}
+        title={
+          selectedUser ? `Message ${selectedUser.name}` : 'Message User'
+        }
+        isDark={isDark}
+      >
+        <form onSubmit={handleSendMessage} className="space-y-4">
+          <div>
+            <label
+              className={`block text-sm font-medium mb-2 ${
+                isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
+            >
+              Message
+            </label>
+            <textarea
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              rows={4}
+              maxLength={1000}
+              className={`w-full px-4 py-3 rounded-lg border transition-colors ${
+                isDark
+                  ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
+              placeholder="Write a message that will appear in the user's inbox..."
+              required
+            />
+            <div className="mt-1 text-xs text-gray-500 text-right">
+              {messageText.length}/1000
+            </div>
+          </div>
+          <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              onClick={() => {
+                setShowMessageModal(false);
+                setSelectedUser(null);
+                setMessageText('');
+              }}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !messageText.trim()}
+            >
+              {loading ? 'Sending...' : 'Send Message'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

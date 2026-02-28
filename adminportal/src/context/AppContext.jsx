@@ -326,6 +326,22 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Admin messaging to users (buyers/sellers)
+  const sendUserMessage = async (userId, message) => {
+    try {
+      const result = await adminApi.sendUserMessage(userId, message);
+      if (result.success) {
+        toast.success('Message sent to user');
+      } else {
+        toast.error(result.message || 'Failed to send message');
+      }
+      return result;
+    } catch (error) {
+      toast.error('Failed to send message');
+      return { success: false, message: error.message };
+    }
+  };
+
   // Data fetching functions
   const fetchProperties = useCallback(async () => {
     try {
@@ -393,6 +409,9 @@ export const AppProvider = ({ children }) => {
     // Feedback management
     respondToFeedback,
     fetchFeedback,
+
+    // Admin messaging
+    sendUserMessage,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

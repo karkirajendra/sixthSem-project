@@ -10,8 +10,9 @@ import {
   getMyProperties,
   searchProperties,
   toggleFeatured,
+  getRecommendations,
 } from '../controllers/propertyController.js';
-import { protect, roleAuth } from '../middlewares/auth.js';
+import { protect, roleAuth, optionalAuth } from '../middlewares/auth.js';
 import { validateProperty } from '../middlewares/validation.js';
 import { trackPageView } from '../middlewares/analytics.js';
 
@@ -21,6 +22,7 @@ const router = express.Router();
 router.get('/', trackPageView, getAllProperties);
 router.get('/featured', trackPageView, getFeaturedProperties);
 router.get('/search', trackPageView, searchProperties);
+router.post('/recommendations', optionalAuth, getRecommendations);
 router.get('/seller/:sellerId', trackPageView, getPropertiesBySeller);
 router.get('/:id', trackPageView, getPropertyById);
 

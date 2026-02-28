@@ -190,28 +190,45 @@ const BuyerMessages = () => {
   const getMessageInfo = (msg) => {
     const isCurrentUser = msg.senderId._id === currentUser.id;
     const isSeller = msg.senderId.role === 'seller';
+    const isAdmin = msg.senderId.role === 'admin';
 
     return {
       isCurrentUser,
       isSeller,
+      isAdmin,
       senderName: msg.senderId.name,
       alignment: isCurrentUser ? 'justify-end' : 'justify-start',
-      bubbleColor: isCurrentUser 
+      bubbleColor: isCurrentUser
         ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
+        : isAdmin
+        ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-200'
         : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-200',
-      roleIcon: isSeller ? <FaStore className="text-xs" /> : <FaUser className="text-xs" />,
-      roleLabel: isSeller ? 'Seller' : 'Buyer'
+      roleIcon: isAdmin
+        ? <FaUser className="text-xs" />
+        : isSeller
+        ? <FaStore className="text-xs" />
+        : <FaUser className="text-xs" />,
+      roleLabel: isAdmin ? 'Admin' : isSeller ? 'Seller' : 'Buyer'
     };
   };
 
   const getRoleDisplayInfo = (user) => {
     const isSeller = user.role === 'seller';
+    const isAdmin = user.role === 'admin';
     return {
-      icon: isSeller ? <FaStore className="text-green-500" /> : <FaUser className="text-blue-500" />,
-      bgColor: isSeller ? 'bg-green-100' : 'bg-blue-100',
-      textColor: isSeller ? 'text-green-600' : 'text-blue-600',
-      roleLabel: isSeller ? 'Property Owner' : 'Buyer',
-      badgeColor: isSeller ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+      icon: isAdmin
+        ? <FaUser className="text-purple-500" />
+        : isSeller
+        ? <FaStore className="text-green-500" />
+        : <FaUser className="text-blue-500" />,
+      bgColor: isAdmin ? 'bg-purple-100' : isSeller ? 'bg-green-100' : 'bg-blue-100',
+      textColor: isAdmin ? 'text-purple-600' : isSeller ? 'text-green-600' : 'text-blue-600',
+      roleLabel: isAdmin ? 'Admin' : isSeller ? 'Property Owner' : 'Buyer',
+      badgeColor: isAdmin
+        ? 'bg-purple-100 text-purple-600'
+        : isSeller
+        ? 'bg-green-100 text-green-600'
+        : 'bg-blue-100 text-blue-600'
     };
   };
 

@@ -1,6 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import Property from '../models/Property.js';
 import User from '../models/user.js';
+import Wishlist from '../models/Wishlist.js';
+import Booking from '../models/Booking.js';
 import { trackPropertyView } from '../middlewares/analytics.js';
 
 // @desc    Get all properties with filters
@@ -479,6 +481,222 @@ export const searchProperties = asyncHandler(async (req, res) => {
     totalPages: Math.ceil(total / limit),
     currentPage: parseInt(page),
     data: properties,
+  });
+});
+
+// @desc    Smart recommendations based on history, preferences, and group size
+// @route   POST /api/properties/recommendations
+// @access  Public (uses auth when available)
+export const getRecommendations = asyncHandler(async (req, res) => {
+  const { user } = req;
+  const {
+    userLocation,
+    preferences = {},
+    limit = 8,
+  } = req.body || {};
+
+  const maxResults = Math.min(parseInt(limit, 10) || 8, 20);
+
+  // Base query: only available properties
+  const query = { status: 'available' };
+
+  if (preferences.type) {
+    query.type = preferences.type;
+  }
+
+  if (preferences.minPrice || preferences.maxPrice) {
+    query.price = {};
+    if (preferences.minPrice) query.price.$gte = Number(preferences.minPrice);
+    if (preferences.maxPrice) query.price.$lte = Number(preferences.maxPrice);
+  }
+
+  // Fetch candidate properties
+  const candidates = await Property.find(query)
+    .populate('sellerId', 'name email role')
+    .lean();
+
+  if (!candidates.length) {
+    return res.json({
+      success: true,
+      data: {
+        recommendations: [],
+        basedOn: {
+          reason: 'no_candidates',
+        },
+        userLocation: userLocation || null,
+      },
+    });
+  }
+
+  // Derive implicit preferences from wishlist and bookings (acts as "booking history")
+  let historyProperties = [];
+  if (user) {
+    const [wishlistItems, bookings] = await Promise.all([
+      Wishlist.find({ user: user._id })
+        .populate('property', 'type price location bedrooms bathrooms address')
+        .lean(),
+      Booking.find({
+        user: user._id,
+        status: { $in: ['confirmed', 'completed'] },
+      })
+        .populate('property', 'type price location bedrooms bathrooms address')
+        .lean(),
+    ]);
+
+    historyProperties = [
+      ...wishlistItems.map((w) => w.property).filter(Boolean),
+      ...bookings.map((b) => b.property).filter(Boolean),
+    ];
+  }
+
+  const historyCount = historyProperties.length;
+
+  // Aggregate history preferences
+  const typeCounts = {};
+  const cityCounts = {};
+  let priceSum = 0;
+  let priceCount = 0;
+  let inferredGroupSize = 0;
+
+  historyProperties.forEach((p) => {
+    if (!p) return;
+    if (p.type) {
+      typeCounts[p.type] = (typeCounts[p.type] || 0) + 1;
+    }
+    const city =
+      p.address?.city || (p.location ? p.location.split(',')[0].trim() : null);
+    if (city) {
+      cityCounts[city] = (cityCounts[city] || 0) + 1;
+    }
+    if (typeof p.price === 'number') {
+      priceSum += p.price;
+      priceCount += 1;
+    }
+    if (typeof p.bedrooms === 'number' && p.bedrooms > 0) {
+      inferredGroupSize = Math.max(
+        inferredGroupSize,
+        Math.min(p.bedrooms * 2, 10)
+      );
+    }
+  });
+
+  const favoriteType =
+    Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+  const favoriteCity =
+    Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+  const averageHistoryPrice =
+    priceCount > 0 ? Math.round(priceSum / priceCount) : null;
+
+  const groupSize =
+    Number(preferences.groupSize) > 0
+      ? Number(preferences.groupSize)
+      : inferredGroupSize || 1;
+
+  // Build a quick lookup set for history properties (used to boost score)
+  const historyIds = new Set(
+    historyProperties.map((p) => p?._id?.toString()).filter(Boolean)
+  );
+
+  const desiredLocation =
+    preferences.location || favoriteCity || userLocation?.city || null;
+
+  // Score each candidate
+  const scored = candidates.map((p) => {
+    let score = 10; // base score
+
+    // Type match
+    if (preferences.type && p.type === preferences.type) {
+      score += 20;
+    } else if (!preferences.type && favoriteType && p.type === favoriteType) {
+      score += 15;
+    }
+
+    // Location match (very simple text-based matching)
+    const propertyCity =
+      p.address?.city || (p.location ? p.location.split(',')[0].trim() : null);
+    if (
+      desiredLocation &&
+      propertyCity &&
+      propertyCity.toLowerCase().includes(desiredLocation.toLowerCase())
+    ) {
+      score += 20;
+    } else if (
+      desiredLocation &&
+      p.location &&
+      p.location.toLowerCase().includes(desiredLocation.toLowerCase())
+    ) {
+      score += 15;
+    }
+
+    // Price closeness to either explicit preference or history average
+    const targetPrice =
+      (preferences.minPrice && preferences.maxPrice
+        ? (Number(preferences.minPrice) + Number(preferences.maxPrice)) / 2
+        : preferences.maxPrice
+        ? Number(preferences.maxPrice)
+        : preferences.minPrice
+        ? Number(preferences.minPrice)
+        : averageHistoryPrice) || null;
+
+    if (targetPrice && typeof p.price === 'number') {
+      const diff = Math.abs(p.price - targetPrice);
+      const ratio = Math.min(diff / Math.max(targetPrice, 1), 1); // 0..1
+      const priceScore = Math.round((1 - ratio) * 20); // 0..20
+      score += priceScore;
+    }
+
+    // Group size / capacity match (simple heuristic: 2 people per bedroom)
+    const capacity =
+      typeof p.bedrooms === 'number' && p.bedrooms > 0
+        ? p.bedrooms * 2
+        : 2;
+    if (groupSize && capacity >= groupSize) {
+      score += 20;
+    } else if (groupSize) {
+      const ratio = capacity / groupSize;
+      score += Math.max(0, Math.round(ratio * 15)); // up to 15 if partially suitable
+    }
+
+    // Boost properties the user has interacted with before (wishlist / bookings)
+    if (historyIds.has(p._id.toString())) {
+      score += 20;
+    }
+
+    // Add small popularity boost based on views
+    const views = p.views?.total || 0;
+    if (views > 0) {
+      const popularityBoost = Math.min(Math.round(views / 50), 15);
+      score += popularityBoost;
+    }
+
+    return {
+      ...p,
+      recommendationScore: Math.min(score, 100),
+    };
+  });
+
+  // Sort by score descending and limit
+  scored.sort((a, b) => b.recommendationScore - a.recommendationScore);
+  const recommendations = scored.slice(0, maxResults);
+
+  res.json({
+    success: true,
+    data: {
+      recommendations,
+      basedOn: {
+        historyCount,
+        favoriteType,
+        favoriteCity,
+        averageHistoryPrice,
+        explicitType: preferences.type || null,
+        explicitPriceRange: {
+          min: preferences.minPrice || null,
+          max: preferences.maxPrice || null,
+        },
+        groupSize,
+      },
+      userLocation: userLocation || null,
+    },
   });
 });
 

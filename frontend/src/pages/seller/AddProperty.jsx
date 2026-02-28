@@ -219,6 +219,16 @@ const AddProperty = () => {
     'Students Welcome',
   ];
 
+  const provinces = [
+    'Koshi Province',
+    'Madhesh Province',
+    'Bagmati Province',
+    'Gandaki Province',
+    'Lumbini Province',
+    'Karnali Province',
+    'Sudurpashchim Province',
+  ];
+
   // Map event handlers
 const handleMapClick = useCallback(async (lat, lng) => {
   setSelectedLocation([lat, lng]);
@@ -1000,16 +1010,21 @@ const handleSubmit = async (e) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State
+                  Province
                 </label>
-                <input
-                  type="text"
+                <select
                   name="address.state"
                   value={propertyData.address.state}
                   onChange={handlePropertyChange}
-                  placeholder="State/Province"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
+                  <option value="">Select Province</option>
+                  {provinces.map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
