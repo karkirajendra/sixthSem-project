@@ -94,9 +94,9 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
           prev.map((listing) =>
             listing.id === listingId
               ? {
-                  ...listing,
-                  status: newStatus === 'available' ? 'Active' : 'Pending',
-                }
+                ...listing,
+                status: newStatus === 'available' ? 'Active' : 'Pending',
+              }
               : listing
           )
         );
@@ -155,9 +155,9 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
           prev.map((listing) =>
             selectedListings.includes(listing.id)
               ? {
-                  ...listing,
-                  status: bulkAction === 'available' ? 'Active' : 'Pending',
-                }
+                ...listing,
+                status: bulkAction === 'available' ? 'Active' : 'Pending',
+              }
               : listing
           )
         );
@@ -228,9 +228,8 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
           >
             Title
           </label>
@@ -239,19 +238,17 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             name="title"
             value={formData.title}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
             required
           />
         </div>
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
           >
             Type
           </label>
@@ -259,11 +256,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             name="type"
             value={formData.type}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
           >
             <option value="Apartment">Apartment</option>
             <option value="House">House</option>
@@ -276,9 +272,8 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
           >
             Price
           </label>
@@ -287,19 +282,17 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             name="price"
             value={formData.price}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
             required
           />
         </div>
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
           >
             Location
           </label>
@@ -308,11 +301,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             name="location"
             value={formData.location}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
             required
           />
         </div>
@@ -321,9 +313,8 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
           >
             Owner
           </label>
@@ -332,19 +323,17 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             name="owner"
             value={formData.owner}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
             required
           />
         </div>
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
           >
             Status
           </label>
@@ -352,11 +341,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             name="status"
             value={formData.status}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
           >
             <option value="Active">Active</option>
             <option value="Pending">Pending</option>
@@ -368,11 +356,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
         <button
           type="button"
           onClick={() => setShowEditModal(false)}
-          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            isDark
-              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          className={`px-6 py-3 rounded-lg font-medium transition-colors ${isDark
+            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
         >
           Cancel
         </button>
@@ -395,11 +382,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
           <input
             type="text"
             placeholder="Search listings by title or location..."
-            className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -407,11 +393,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
 
         <div className="flex flex-col sm:flex-row gap-3">
           <select
-            className={`px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-800 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-800 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
           >
@@ -423,11 +408,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
           </select>
 
           <select
-            className={`px-4 py-3 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-gray-800 border-gray-600 text-white focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20`}
+            className={`px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-800 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -441,16 +425,14 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
       {/* Bulk Actions */}
       {selectedListings.length > 0 && (
         <div
-          className={`flex items-center justify-between p-4 rounded-lg mb-4 ${
-            isDark
-              ? 'bg-gray-800 border border-gray-700'
-              : 'bg-blue-50 border border-blue-200'
-          }`}
+          className={`flex items-center justify-between p-4 rounded-lg mb-4 ${isDark
+            ? 'bg-gray-800 border border-gray-700'
+            : 'bg-blue-50 border border-blue-200'
+            }`}
         >
           <span
-            className={`text-sm font-medium ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}
+            className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
           >
             {selectedListings.length} listing(s) selected
           </span>
@@ -458,11 +440,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             <select
               value={bulkAction}
               onChange={(e) => setBulkAction(e.target.value)}
-              className={`px-3 py-1 rounded border text-sm ${
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+              className={`px-3 py-1 rounded border text-sm ${isDark
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
+                }`}
             >
               <option value="">Select Action</option>
               <option value="available">Approve</option>
@@ -482,18 +463,16 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
 
       {/* Table */}
       <div
-        className={`rounded-xl overflow-hidden shadow-lg ${
-          isDark ? 'bg-gray-800' : 'bg-white'
-        }`}
+        className={`rounded-xl overflow-hidden shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'
+          }`}
       >
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className={`${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
               <tr>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -506,98 +485,91 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                   />
                 </th>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   Property
                 </th>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   Type
                 </th>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   Price
                 </th>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   Owner
                 </th>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   Status
                 </th>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   Created
                 </th>
                 <th
-                  className={`px-6 py-4 text-left text-sm font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
                 >
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody
-              className={`divide-y ${
-                isDark ? 'divide-gray-700' : 'divide-gray-200'
-              }`}
+              className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'
+                }`}
             >
               {currentListings.length > 0 ? (
                 currentListings.map((listing, index) => {
                   // Helper function to format image URL
+                  // Inline SVG used as fallback (works offline, no external dependency)
+                  const FALLBACK_IMG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='9' fill='%239ca3af'%3ENo Img%3C/text%3E%3C/svg%3E`;
+
                   const getImageUrl = (imageUrl) => {
                     if (!imageUrl) return null;
-                    
-                    // If it's already a full URL, use it
+
+                    // Full external URL — use as-is
+                    if (imageUrl.startsWith('https://')) {
+                      return imageUrl;
+                    }
+
+                    // localhost:5000 upload URL — rewrite to relative /uploads/...
+                    // so Vite proxy forwards it (avoids ERR_BLOCKED_BY_RESPONSE)
+                    if (imageUrl.includes('localhost:5000/uploads/')) {
+                      return imageUrl.replace(/^https?:\/\/localhost:5000/, '');
+                    }
+
                     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
                       return imageUrl;
                     }
-                    
-                    // Get API URL from env or default
-                    const apiUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
-                    
-                    // If it starts with /uploads or uploads/, prepend API URL
-                    if (imageUrl.startsWith('/uploads/')) {
-                      return `${apiUrl}${imageUrl}`;
-                    }
-                    if (imageUrl.startsWith('uploads/')) {
-                      return `${apiUrl}/${imageUrl}`;
-                    }
-                    
-                    // If it starts with /, prepend API URL
-                    if (imageUrl.startsWith('/')) {
-                      return `${apiUrl}${imageUrl}`;
-                    }
-                    
-                    // Otherwise, assume it's in uploads folder
-                    return `${apiUrl}/uploads/${imageUrl}`;
+
+                    // Relative path — keep relative so Vite proxy handles it
+                    if (imageUrl.startsWith('/uploads/')) return imageUrl;
+                    if (imageUrl.startsWith('uploads/')) return `/${imageUrl}`;
+                    if (imageUrl.startsWith('/')) return imageUrl;
+
+                    return `/uploads/${imageUrl}`;
                   };
-                  
+
                   // Get the first image from various possible fields
-                  const rawImageUrl = listing.images?.[0] || 
-                                    listing.image || 
-                                    listing.imageUrl ||
-                                    (Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : null);
-                  
+                  const rawImageUrl = listing.images?.[0] ||
+                    listing.image ||
+                    listing.imageUrl ||
+                    (Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : null);
+
                   // Debug: Log image data
                   if (index === 0) {
                     console.log('Listing image data:', {
@@ -608,15 +580,14 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                       rawImageUrl: rawImageUrl
                     });
                   }
-                  
+
                   const imageUrl = getImageUrl(rawImageUrl);
-                  
+
                   return (
                     <tr
                       key={listing.id}
-                      className={`transition-colors ${
-                        isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                      }`}
+                      className={`transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                        }`}
                     >
                       <td className="px-6 py-4">
                         <input
@@ -631,201 +602,187 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                           {/* Property Image */}
                           <div className="flex-shrink-0 h-12 w-12">
                             <img
-                              src={imageUrl || 'https://via.placeholder.com/48?text=No+Image'}
+                              src={imageUrl || FALLBACK_IMG}
                               alt={listing.title || 'Property'}
                               className="h-12 w-12 rounded-md object-cover border border-gray-200"
                               onError={(e) => {
                                 // Fallback to placeholder if image fails to load
-                                if (e.target.src !== 'https://via.placeholder.com/48?text=No+Image') {
+                                if (e.target.src !== FALLBACK_IMG) {
                                   console.error('Image failed to load:', e.target.src);
-                                  e.target.src = 'https://via.placeholder.com/48?text=No+Image';
+                                  e.target.src = FALLBACK_IMG;
                                 }
                               }}
                             />
                           </div>
-                        <div>
-                          <p
-                            className={`font-medium ${
-                              isDark ? 'text-white' : 'text-gray-900'
-                            }`}
-                          >
-                            {listing.title}
-                          </p>
-                          <p
-                            className={`text-sm ${
-                              isDark ? 'text-gray-400' : 'text-gray-500'
-                            }`}
-                          >
-                            {listing.location}
-                          </p>
+                          <div>
+                            <p
+                              className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                                }`}
+                            >
+                              {listing.title}
+                            </p>
+                            <p
+                              className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'
+                                }`}
+                            >
+                              {listing.location}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          listing.type === 'House'
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${listing.type === 'House'
                             ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
                             : listing.type === 'Apartment'
-                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-                            : listing.type === 'Studio'
-                            ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
-                            : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                        }`}
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                              : listing.type === 'Studio'
+                                ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
+                                : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                            }`}
+                        >
+                          {listing.type}
+                        </span>
+                      </td>
+                      <td
+                        className={`px-6 py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                          }`}
                       >
-                        {listing.type}
-                      </span>
-                    </td>
-                    <td
-                      className={`px-6 py-4 text-sm font-medium ${
-                        isDark ? 'text-white' : 'text-gray-900'
-                      }`}
-                    >
-                      Rs. {listing.price}/mo
-                    </td>
-                    <td
-                      className={`px-6 py-4 text-sm ${
-                        isDark ? 'text-gray-300' : 'text-gray-900'
-                      }`}
-                    >
-                      {listing.owner}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          listing.status === 'Active'
+                        Rs. {listing.price}/mo
+                      </td>
+                      <td
+                        className={`px-6 py-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`}
+                      >
+                        {listing.owner}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${listing.status === 'Active'
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                             : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                        }`}
+                            }`}
+                        >
+                          {listing.status}
+                        </span>
+                      </td>
+                      <td
+                        className={`px-6 py-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`}
                       >
-                        {listing.status}
-                      </span>
-                    </td>
-                    <td
-                      className={`px-6 py-4 text-sm ${
-                        isDark ? 'text-gray-300' : 'text-gray-900'
-                      }`}
-                    >
-                      {listing.created}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        {listing.status === 'Pending' && (
-                          <>
-                            <button
-                              className={`p-2 rounded-lg transition-colors ${
-                                isDark
+                        {listing.created}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          {listing.status === 'Pending' && (
+                            <>
+                              <button
+                                className={`p-2 rounded-lg transition-colors ${isDark
                                   ? 'hover:bg-gray-700 text-gray-400 hover:text-green-400'
                                   : 'hover:bg-green-50 text-gray-500 hover:text-green-600'
-                              }`}
-                              title="Approve listing"
-                              onClick={() =>
-                                handleStatusChange(listing.id, 'available')
-                              }
-                              disabled={loading}
-                            >
-                              <FiCheck className="h-4 w-4" />
-                            </button>
-                            <button
-                              className={`p-2 rounded-lg transition-colors ${
-                                isDark
+                                  }`}
+                                title="Approve listing"
+                                onClick={() =>
+                                  handleStatusChange(listing.id, 'available')
+                                }
+                                disabled={loading}
+                              >
+                                <FiCheck className="h-4 w-4" />
+                              </button>
+                              <button
+                                className={`p-2 rounded-lg transition-colors ${isDark
                                   ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400'
                                   : 'hover:bg-red-50 text-gray-500 hover:text-red-600'
-                              }`}
-                              title="Reject listing"
-                              onClick={() =>
-                                handleStatusChange(listing.id, 'rejected')
-                              }
-                              disabled={loading}
-                            >
-                              <FiX className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${
-                            listing.featured
+                                  }`}
+                                title="Reject listing"
+                                onClick={() =>
+                                  handleStatusChange(listing.id, 'rejected')
+                                }
+                                disabled={loading}
+                              >
+                                <FiX className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            className={`p-2 rounded-lg transition-colors ${listing.featured
                               ? isDark
                                 ? 'text-yellow-400 hover:bg-gray-700'
                                 : 'text-yellow-600 hover:bg-yellow-50'
                               : isDark
-                              ? 'hover:bg-gray-700 text-gray-400 hover:text-yellow-400'
-                              : 'hover:bg-yellow-50 text-gray-500 hover:text-yellow-600'
-                          }`}
-                          title={
-                            listing.featured
-                              ? 'Remove from featured'
-                              : 'Add to featured'
-                          }
-                          onClick={() => handleToggleFeatured(listing.id)}
-                          disabled={loading}
-                        >
-                          <FiStar
-                            className={`h-4 w-4 ${
-                              listing.featured ? 'fill-current' : ''
-                            }`}
-                          />
-                        </button>
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark
+                                ? 'hover:bg-gray-700 text-gray-400 hover:text-yellow-400'
+                                : 'hover:bg-yellow-50 text-gray-500 hover:text-yellow-600'
+                              }`}
+                            title={
+                              listing.featured
+                                ? 'Remove from featured'
+                                : 'Add to featured'
+                            }
+                            onClick={() => handleToggleFeatured(listing.id)}
+                            disabled={loading}
+                          >
+                            <FiStar
+                              className={`h-4 w-4 ${listing.featured ? 'fill-current' : ''
+                                }`}
+                            />
+                          </button>
+                          <button
+                            className={`p-2 rounded-lg transition-colors ${isDark
                               ? 'hover:bg-gray-700 text-gray-400 hover:text-blue-400'
                               : 'hover:bg-blue-50 text-gray-500 hover:text-blue-600'
-                          }`}
-                          title="Edit listing"
-                          onClick={() => {
-                            setSelectedListing(listing);
-                            setFormData(listing);
-                            setShowEditModal(true);
-                          }}
-                        >
-                          <FiEdit className="h-4 w-4" />
-                        </button>
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark
+                              }`}
+                            title="Edit listing"
+                            onClick={() => {
+                              setSelectedListing(listing);
+                              setFormData(listing);
+                              setShowEditModal(true);
+                            }}
+                          >
+                            <FiEdit className="h-4 w-4" />
+                          </button>
+                          <button
+                            className={`p-2 rounded-lg transition-colors ${isDark
                               ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400'
                               : 'hover:bg-red-50 text-gray-500 hover:text-red-600'
-                          }`}
-                          title="Delete listing"
-                          onClick={() => {
-                            setSelectedListing(listing);
-                            setShowDeleteDialog(true);
-                          }}
-                          disabled={loading}
+                              }`}
+                            title="Delete listing"
+                            onClick={() => {
+                              setSelectedListing(listing);
+                              setShowDeleteDialog(true);
+                            }}
+                            disabled={loading}
+                          >
+                            <FiTrash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }))
+                : (
+                  <tr>
+                    <td
+                      colSpan="8"
+                      className={`px-6 py-12 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={`w-16 h-16 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-100'
+                            } flex items-center justify-center mb-4`}
                         >
-                          <FiTrash2 className="h-4 w-4" />
-                        </button>
+                          <FiSearch className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-lg font-medium mb-2">
+                          No listings found
+                        </p>
+                        <p className="text-sm">
+                          Try adjusting your search or filter criteria
+                        </p>
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="8"
-                    className={`px-6 py-12 text-center ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-16 h-16 rounded-full ${
-                          isDark ? 'bg-gray-700' : 'bg-gray-100'
-                        } flex items-center justify-center mb-4`}
-                      >
-                        <FiSearch className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <p className="text-lg font-medium mb-2">
-                        No listings found
-                      </p>
-                      <p className="text-sm">
-                        Try adjusting your search or filter criteria
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              )}
+                )}
             </tbody>
           </table>
         </div>
@@ -833,18 +790,16 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
         {/* Pagination */}
         {filteredListings.length > 0 && (
           <div
-            className={`px-6 py-4 border-t ${
-              isDark
-                ? 'border-gray-700 bg-gray-800'
-                : 'border-gray-200 bg-gray-50'
-            }`}
+            className={`px-6 py-4 border-t ${isDark
+              ? 'border-gray-700 bg-gray-800'
+              : 'border-gray-200 bg-gray-50'
+              }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <span
-                  className={`text-sm ${
-                    isDark ? 'text-gray-400' : 'text-gray-700'
-                  }`}
+                  className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-700'
+                    }`}
                 >
                   Showing {startIndex + 1} to{' '}
                   {Math.min(endIndex, filteredListings.length)} of{' '}
@@ -856,11 +811,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                   onChange={(e) =>
                     handleItemsPerPageChange(parseInt(e.target.value))
                   }
-                  className={`px-3 py-1 rounded border text-sm ${
-                    isDark
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
+                  className={`px-3 py-1 rounded border text-sm ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                 >
                   <option value={5}>5 per page</option>
                   <option value={10}>10 per page</option>
@@ -873,15 +827,14 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`p-2 rounded-lg transition-colors ${
-                    currentPage === 1
-                      ? isDark
-                        ? 'text-gray-600 cursor-not-allowed'
-                        : 'text-gray-400 cursor-not-allowed'
-                      : isDark
+                  className={`p-2 rounded-lg transition-colors ${currentPage === 1
+                    ? isDark
+                      ? 'text-gray-600 cursor-not-allowed'
+                      : 'text-gray-400 cursor-not-allowed'
+                    : isDark
                       ? 'text-gray-400 hover:text-white hover:bg-gray-700'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <FiChevronLeft className="h-5 w-5" />
                 </button>
@@ -891,13 +844,12 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
-                          : isDark
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                        ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
+                        : isDark
                           ? 'text-gray-400 hover:text-white hover:bg-gray-700'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>
@@ -907,15 +859,14 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`p-2 rounded-lg transition-colors ${
-                    currentPage === totalPages
-                      ? isDark
-                        ? 'text-gray-600 cursor-not-allowed'
-                        : 'text-gray-400 cursor-not-allowed'
-                      : isDark
+                  className={`p-2 rounded-lg transition-colors ${currentPage === totalPages
+                    ? isDark
+                      ? 'text-gray-600 cursor-not-allowed'
+                      : 'text-gray-400 cursor-not-allowed'
+                    : isDark
                       ? 'text-gray-400 hover:text-white hover:bg-gray-700'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <FiChevronRight className="h-5 w-5" />
                 </button>

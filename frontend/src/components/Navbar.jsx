@@ -216,6 +216,17 @@ const Navbar = () => {
             </div>
           ) : (
             <div className="flex items-center space-x-2">
+              <a
+                href={import.meta.env.VITE_APP_ADMIN_PORTAL_URL || 'http://localhost:4100'}
+                className={`text-sm ${
+                  scrolled || location.pathname !== '/' 
+                    ? 'text-gray-500 hover:text-primary-600' 
+                    : 'text-white/80 hover:text-white'
+                } transition-colors`}
+                title="Admin Panel"
+              >
+                Admin
+              </a>
               <Link 
                 to="/login" 
                 className={`${
@@ -308,13 +319,13 @@ const Navbar = () => {
               >
                 About Us
               </Link>
-              <Link 
-                to="/contact" 
-                className={`block py-2 ${isActive('/contact') ? 'text-primary-600 font-medium' : 'text-gray-700 hover:text-primary-600'}`}
+              <a
+                href={import.meta.env.VITE_APP_ADMIN_PORTAL_URL || 'http://localhost:4100'}
+                className="block py-2 text-gray-700 hover:text-primary-600"
                 onClick={() => setIsMenuOpen(false)}
               >
-                
-              </Link>
+                Admin Login
+              </a>
 
               {isLoggedIn ? (
                 <>

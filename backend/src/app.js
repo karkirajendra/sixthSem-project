@@ -18,7 +18,6 @@ import adminRoutes from './routes/adminRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import imageRoutes from './routes/imageRoutes.js';
-import bookingRoutes from './routes/bookingRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import sellerChatRoutes from './routes/sellerChatRoutes.js';
 
@@ -50,8 +49,8 @@ app.use(
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: (process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000,
+  max: process.env.RATE_LIMIT_MAX || 100,
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.',
@@ -98,7 +97,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/images', imageRoutes);
-app.use('/api/bookings', bookingRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/seller/chat', sellerChatRoutes);
 

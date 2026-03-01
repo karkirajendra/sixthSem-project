@@ -72,7 +72,7 @@ const Login = () => {
             </div>
           </div>
           <h1 className="mt-6 text-4xl font-extrabold text-white mb-2 tracking-tight">
-            Sajilo<span className="text-blue-200">Basai</span>
+            Room<span className="text-blue-200">Sathi</span>
           </h1>
           <p className="text-blue-100 text-lg font-light">Admin Dashboard</p>
         </div>
@@ -186,9 +186,8 @@ const Login = () => {
               >
                 <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                   <FiLogIn
-                    className={`h-5 w-5 text-blue-300 group-hover:text-blue-200 transition-colors ${
-                      loading ? 'opacity-0' : 'opacity-100'
-                    }`}
+                    className={`h-5 w-5 text-blue-300 group-hover:text-blue-200 transition-colors ${loading ? 'opacity-0' : 'opacity-100'
+                      }`}
                   />
                 </span>
                 {loading ? (

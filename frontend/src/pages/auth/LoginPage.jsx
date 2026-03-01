@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Lock, LogIn, Eye, EyeOff, Shield } from 'lucide-react';
+import { Mail, Lock, LogIn, Eye, EyeOff, Shield, Settings } from 'lucide-react';
 import GradientButton from '../../components/ui/GradientButton';
 import { toast } from 'react-hot-toast';
 
@@ -33,7 +33,10 @@ const LoginPage = () => {
         // Redirect based on user role
         const user = result.user;
         if (user.role === 'admin') {
-          navigate('/admin/dashboard');
+          // Admin portal is a separate app - redirect to it (admin will log in there)
+          const adminPortalUrl = import.meta.env.VITE_APP_ADMIN_PORTAL_URL || 'http://localhost:4100';
+          window.location.href = `${adminPortalUrl}/login`;
+          return;
         } else if (user.role === 'seller') {
           navigate('/seller/dashboard');
         } else {
@@ -239,6 +242,17 @@ const LoginPage = () => {
                   Sign up
                 </a>
               </p>
+            </div>
+
+            {/* Admin Login Link */}
+            <div className="mt-4 text-center">
+              <a
+                href={import.meta.env.VITE_APP_ADMIN_PORTAL_URL || 'http://localhost:4100'}
+                className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200"
+              >
+                <Settings className="w-4 h-4" />
+                Admin Login
+              </a>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 // Admin API Integration with Backend
-import { faker } from '@faker-js/faker';
+
 
 // API Configuration
 const API_URL = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
@@ -11,7 +11,7 @@ const pendingRequests = new Map();
 // Rate limiting - track request times
 const rateLimitTracker = new Map();
 const RATE_LIMIT_WINDOW = 1000; // 1 second
-const MAX_REQUESTS_PER_WINDOW = 3;
+const MAX_REQUESTS_PER_WINDOW = 10;
 
 // Cleanup old cache entries every 5 minutes
 setInterval(() => {
@@ -160,63 +160,8 @@ const makeCachedRequest = async (url, options = {}, cacheKey = null) => {
   return requestPromise;
 };
 
-// Generate dummy feedback data
-const generateFeedback = (count = 8) => {
-  return Array.from({ length: count }, () => ({
-    id: faker.string.uuid(),
-    userName: faker.person.fullName(),
-    message: faker.lorem.paragraph(),
-    date: faker.date.recent({ days: 60 }).toISOString(),
-    status: faker.helpers.arrayElement(['Pending', 'Approved']),
-  }));
-};
-
-// Generate dummy pages data
-const generatePages = (count = 5) => {
-  return Array.from({ length: count }, () => ({
-    id: faker.string.uuid(),
-    title: faker.lorem.words(3),
-    content: faker.lorem.paragraphs(3),
-    type: faker.helpers.arrayElement(['Blog', 'About', 'Terms', 'Privacy']),
-    featuredImage: faker.image.url(),
-    shortDescription: faker.lorem.paragraph(),
-    tags: Array.from({ length: 3 }, () => faker.lorem.word()),
-    createdAt: faker.date.past().toISOString(),
-    updatedAt: faker.date.recent().toISOString(),
-  }));
-};
-
-// Generate analytics data
-const generateAnalytics = () => {
-  return {
-    dailyVisits: Array.from({ length: 7 }, () =>
-      faker.number.int({ min: 100, max: 1000 })
-    ),
-    weeklyLabels: Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (6 - i));
-      return d.toLocaleDateString('en-US', { weekday: 'short' });
-    }),
-    topCities: [
-      { name: 'Bhaktapur', value: faker.number.int({ min: 50, max: 200 }) },
-      { name: 'Lalitpur', value: faker.number.int({ min: 40, max: 180 }) },
-      { name: 'Boudha', value: faker.number.int({ min: 30, max: 150 }) },
-      { name: 'Chabahil', value: faker.number.int({ min: 25, max: 120 }) },
-      { name: 'Gokarna', value: faker.number.int({ min: 20, max: 100 }) },
-    ],
-    deviceStats: {
-      mobile: 45,
-      desktop: 40,
-      tablet: 15,
-    },
-    topProperties: Array.from({ length: 5 }, () => ({
-      title: faker.lorem.words(3),
-      views: faker.number.int({ min: 500, max: 2000 }),
-    })),
-  };
-};
-
 // Real API functions for admin dashboard
+
 export const adminApi = {
   // Authentication
   login: async (email, password) => {
@@ -596,8 +541,7 @@ export const adminApi = {
       });
 
       const data = await makeCachedRequest(
-        `${API_URL}/api/admin/properties${
-          queryParams.toString() ? '?' + queryParams.toString() : ''
+        `${API_URL}/api/admin/properties${queryParams.toString() ? '?' + queryParams.toString() : ''
         }`,
         {
           headers: createHeaders(true),
@@ -608,23 +552,7 @@ export const adminApi = {
       return data.properties || [];
     } catch (error) {
       console.error('Error fetching listings:', error);
-      // Fallback to mock data
-      return Array.from({ length: 20 }, () => ({
-        id: faker.string.uuid(),
-        title: faker.lorem.sentence({ min: 3, max: 5 }),
-        type: faker.helpers.arrayElement([
-          'Apartment',
-          'House',
-          'Studio',
-          'Room',
-          'Penthouse',
-        ]),
-        price: faker.number.int({ min: 800, max: 5000 }),
-        owner: faker.person.fullName(),
-        location: faker.location.city(),
-        status: faker.helpers.arrayElement(['Active', 'Pending']),
-        created: faker.date.recent({ days: 90 }).toLocaleDateString(),
-      }));
+      throw error;
     }
   },
 
@@ -828,8 +756,7 @@ export const adminApi = {
       return data.data || [];
     } catch (error) {
       console.error('Error fetching feedback:', error);
-      // Fallback to mock data
-      return generateFeedback();
+      return [];
     }
   },
 
@@ -862,8 +789,7 @@ export const adminApi = {
       return data.pages || [];
     } catch (error) {
       console.error('Error fetching pages:', error);
-      // Fallback to mock data
-      return generatePages();
+      return [];
     }
   },
 
@@ -969,11 +895,10 @@ export const adminApi = {
         `analytics_${timeRange}`
       );
 
-      return data.analytics || generateAnalytics();
+      return data.analytics || {};
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      // Always return fallback data for now
-      return generateAnalytics();
+      return {};
     }
   },
 
@@ -1070,57 +995,7 @@ export const adminApi = {
       return data.data || [];
     } catch (error) {
       console.error('Error fetching recent listings:', error);
-      // Always return fallback data for now
-      return [
-        {
-          id: 1,
-          title: 'Traditional House in Bhaktapur',
-          type: 'House',
-          location: 'Bhaktapur Durbar Square',
-          price: 1500,
-          status: 'Active',
-          image:
-            'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=200',
-          views: 156,
-          likes: 23,
-        },
-        {
-          id: 2,
-          title: 'Modern Apartment in Lalitpur',
-          type: 'Apartment',
-          location: 'Patan, Lalitpur',
-          price: 1200,
-          status: 'Pending',
-          image:
-            'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=200',
-          views: 98,
-          likes: 15,
-        },
-        {
-          id: 3,
-          title: 'Studio near Boudhanath',
-          type: 'Studio',
-          location: 'Boudha',
-          price: 800,
-          status: 'Active',
-          image:
-            'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=200',
-          views: 76,
-          likes: 12,
-        },
-        {
-          id: 4,
-          title: 'Commercial Space in Chabahil',
-          type: 'Commercial',
-          location: 'Chabahil Chowk',
-          price: 2500,
-          status: 'Active',
-          image:
-            'https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=200',
-          views: 234,
-          likes: 31,
-        },
-      ];
+      throw error;
     }
   },
 
@@ -1649,5 +1524,5 @@ export const deleteImage = async (publicId) => {
 
 export const getProperties = adminApi.getProperties;
 export const getUsers = adminApi.getUsers;
-export const checkPropertyAvailability = checkPropertyAvailabilityAdmin;
-export const cleanupPropertyStatuses = cleanupPropertyStatusesAdmin;
+// checkPropertyAvailability and cleanupPropertyStatuses are not implemented yet
+

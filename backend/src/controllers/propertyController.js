@@ -2,7 +2,6 @@ import asyncHandler from 'express-async-handler';
 import Property from '../models/Property.js';
 import User from '../models/user.js';
 import Wishlist from '../models/Wishlist.js';
-import Booking from '../models/Booking.js';
 import { trackPropertyView } from '../middlewares/analytics.js';
 
 // @desc    Get all properties with filters
@@ -528,25 +527,14 @@ export const getRecommendations = asyncHandler(async (req, res) => {
     });
   }
 
-  // Derive implicit preferences from wishlist and bookings (acts as "booking history")
+  // Derive implicit preferences from wishlist (acts as lightweight history)
   let historyProperties = [];
   if (user) {
-    const [wishlistItems, bookings] = await Promise.all([
-      Wishlist.find({ user: user._id })
-        .populate('property', 'type price location bedrooms bathrooms address')
-        .lean(),
-      Booking.find({
-        user: user._id,
-        status: { $in: ['confirmed', 'completed'] },
-      })
-        .populate('property', 'type price location bedrooms bathrooms address')
-        .lean(),
-    ]);
+    const wishlistItems = await Wishlist.find({ user: user._id })
+      .populate('property', 'type price location bedrooms bathrooms address')
+      .lean();
 
-    historyProperties = [
-      ...wishlistItems.map((w) => w.property).filter(Boolean),
-      ...bookings.map((b) => b.property).filter(Boolean),
-    ];
+    historyProperties = wishlistItems.map((w) => w.property).filter(Boolean);
   }
 
   const historyCount = historyProperties.length;
