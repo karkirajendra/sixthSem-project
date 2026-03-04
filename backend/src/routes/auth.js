@@ -18,6 +18,8 @@ router.post('/login', validateLogin, loginUser);
 
 // Private routes
 router.get('/profile', protect, getUserProfile);
+// Alias: frontend calls /profile/seller for seller-role users — same controller, role filtering done client-side
+router.get('/profile/seller', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
 router.post('/logout', protect, logoutUser);
 router.get('/dashboard-stats', protect, getDashboardStats);

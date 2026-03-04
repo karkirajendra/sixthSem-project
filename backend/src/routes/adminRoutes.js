@@ -108,11 +108,12 @@ router.get('/activity-log', getAdminActivityLog);
 // Property management
 router.get('/properties', getAllPropertiesAdmin);
 router.post('/properties', createPropertyAdmin);
+// bulk-status MUST come before /:id to prevent Express matching "bulk-status" as an ID param
+router.put('/properties/bulk-status', bulkUpdatePropertiesStatus);
 router.get('/properties/:id', getPropertyDetailsAdmin);
 router.put('/properties/:id/status', updatePropertyStatus);
 router.put('/properties/:id/featured', togglePropertyFeatured);
 router.delete('/properties/:id', deletePropertyAdmin);
-router.put('/properties/bulk-status', bulkUpdatePropertiesStatus);
 
 // CMS management
 router.get('/cms/pages', getAdminCmsPages);

@@ -345,19 +345,45 @@ export const adminApi = {
       };
     } catch (error) {
       console.error('Error fetching users:', error);
-      // Fallback to mock data
-      const mockUsers = Array.from({ length: 15 }, () => ({
-        id: faker.string.uuid(),
-        name: faker.person.fullName(),
-        email: faker.internet.email(),
-        role: faker.helpers.arrayElement(['buyer', 'seller']),
-        status: faker.helpers.arrayElement(['active', 'inactive', 'blocked']),
-        visits: faker.number.int({ min: 10, max: 100 }),
-        joinDate: faker.date.past().toLocaleDateString(),
-        phone: faker.phone.number(),
-        createdAt: faker.date.past().toISOString(),
-        lastLogin: faker.date.recent().toISOString(),
-      }));
+      // Static fallback — faker is not imported
+      const mockUsers = [
+        {
+          id: 'mock-user-1',
+          name: 'Aarav Sharma',
+          email: 'aarav.sharma@example.com',
+          role: 'buyer',
+          status: 'active',
+          visits: 24,
+          joinDate: new Date('2025-01-15').toLocaleDateString(),
+          phone: '+977-9841234567',
+          createdAt: '2025-01-15T00:00:00.000Z',
+          lastLogin: '2025-02-28T10:00:00.000Z',
+        },
+        {
+          id: 'mock-user-2',
+          name: 'Sita Rai',
+          email: 'sita.rai@example.com',
+          role: 'seller',
+          status: 'active',
+          visits: 47,
+          joinDate: new Date('2025-03-10').toLocaleDateString(),
+          phone: '+977-9851234567',
+          createdAt: '2025-03-10T00:00:00.000Z',
+          lastLogin: '2025-03-01T09:30:00.000Z',
+        },
+        {
+          id: 'mock-user-3',
+          name: 'Bikash Thapa',
+          email: 'bikash.thapa@example.com',
+          role: 'buyer',
+          status: 'inactive',
+          visits: 10,
+          joinDate: new Date('2025-02-20').toLocaleDateString(),
+          phone: '+977-9861234567',
+          createdAt: '2025-02-20T00:00:00.000Z',
+          lastLogin: '2025-02-25T14:00:00.000Z',
+        },
+      ];
 
       return {
         users: mockUsers,
@@ -1083,12 +1109,13 @@ export const getAdminProfile = async () => {
     return data.data?.profile || data.data;
   } catch (error) {
     console.error('Error fetching admin profile:', error);
+    // Static fallback — faker is not imported
     return {
       name: 'Admin User',
       email: 'admin@roomsathi.com',
-      phone: '+1234567890',
+      phone: 'Not provided',
       role: 'Administrator',
-      lastLogin: faker.date.recent().toLocaleString(),
+      lastLogin: new Date().toLocaleString(),
     };
   }
 };
@@ -1303,23 +1330,39 @@ export const getReports = async () => {
     return data.data || [];
   } catch (error) {
     console.error('Error fetching reports:', error);
-    // Fallback to mock data
-    return Array.from({ length: 10 }, () => ({
-      id: faker.string.uuid(),
-      property: faker.lorem.words(3),
-      reason: faker.helpers.arrayElement([
-        'Inappropriate Content',
-        'Fake Listing',
-        'Duplicate Listing',
-        'Spam',
-        'Incorrect Information',
-      ]),
-      reportedBy: faker.person.fullName(),
-      date: faker.date.recent().toLocaleDateString(),
-      status: faker.helpers.arrayElement(['Pending', 'Resolved']),
-      priority: faker.helpers.arrayElement(['Low', 'Medium', 'High']),
-      description: faker.lorem.paragraph(),
-    }));
+    // Static fallback — faker is not imported
+    return [
+      {
+        id: 'report-1',
+        property: 'Modern Apartment Kathmandu',
+        reason: 'Fake Listing',
+        reportedBy: 'Aarav Sharma',
+        date: new Date().toLocaleDateString(),
+        status: 'Pending',
+        priority: 'High',
+        description: 'This listing appears to be fraudulent.',
+      },
+      {
+        id: 'report-2',
+        property: 'Studio Room Lalitpur',
+        reason: 'Incorrect Information',
+        reportedBy: 'Sita Rai',
+        date: new Date(Date.now() - 86400000).toLocaleDateString(),
+        status: 'Resolved',
+        priority: 'Medium',
+        description: 'Price listed is different from actual asking price.',
+      },
+      {
+        id: 'report-3',
+        property: 'Flat in Bhaktapur',
+        reason: 'Spam',
+        reportedBy: 'Bikash Thapa',
+        date: new Date(Date.now() - 172800000).toLocaleDateString(),
+        status: 'Pending',
+        priority: 'Low',
+        description: 'Same listing posted multiple times.',
+      },
+    ];
   }
 };
 

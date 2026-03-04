@@ -322,31 +322,26 @@ const AddListings = ({ isDark }) => {
   };
 
   // Styles for dark/light mode
-  const inputStyles = `w-full px-4 py-3 rounded-lg border transition-colors ${
-    isDark
+  const inputStyles = `w-full px-4 py-3 rounded-lg border transition-colors ${isDark
       ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
       : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-  } focus:ring-2 focus:ring-blue-500/20`;
+    } focus:ring-2 focus:ring-blue-500/20`;
 
-  const cardStyles = `rounded-xl shadow-lg p-6 transition-colors ${
-    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-  } border`;
+  const cardStyles = `rounded-xl shadow-lg p-6 transition-colors ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+    } border`;
 
-  const labelStyles = `block text-sm font-medium mb-2 ${
-    isDark ? 'text-gray-300' : 'text-gray-700'
-  }`;
+  const labelStyles = `block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+    }`;
 
-  const sectionTitleStyles = `text-lg font-medium ${
-    isDark ? 'text-white' : 'text-gray-900'
-  }`;
+  const sectionTitleStyles = `text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'
+    }`;
 
   return (
     <div className="p-6">
       <div className="mb-8">
         <h1
-          className={`text-3xl font-bold ${
-            isDark ? 'text-white' : 'text-gray-900'
-          } mb-2`}
+          className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'
+            } mb-2`}
         >
           Add New Listing
         </h1>
@@ -553,25 +548,25 @@ const AddListings = ({ isDark }) => {
             {/* Conditional fields for flat/apartment type */}
             {(propertyData.type === 'flat' ||
               propertyData.type === 'apartment') && (
-              <div>
-                <label className={labelStyles}>
-                  Flat Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="flatType"
-                  value={propertyData.flatType}
-                  onChange={handlePropertyChange}
-                  className={inputStyles}
-                  required
-                >
-                  <option value="">Select Flat Type</option>
-                  <option value="1bhk">1 BHK</option>
-                  <option value="2bhk">2 BHK</option>
-                  <option value="3bhk">3 BHK</option>
-                  <option value="4bhk">4 BHK</option>
-                </select>
-              </div>
-            )}
+                <div>
+                  <label className={labelStyles}>
+                    Flat Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="flatType"
+                    value={propertyData.flatType}
+                    onChange={handlePropertyChange}
+                    className={inputStyles}
+                    required
+                  >
+                    <option value="">Select Flat Type</option>
+                    <option value="1bhk">1 BHK</option>
+                    <option value="2bhk">2 BHK</option>
+                    <option value="3bhk">3 BHK</option>
+                    <option value="4bhk">4 BHK</option>
+                  </select>
+                </div>
+              )}
 
             <div>
               <label className={labelStyles}>
@@ -597,28 +592,25 @@ const AddListings = ({ isDark }) => {
               {/* Image Upload Dropzone */}
               <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                  isDragActive
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${isDragActive
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : uploadingImages
-                    ? 'border-gray-300 bg-gray-50 dark:bg-gray-700 cursor-not-allowed'
-                    : isDark
-                    ? 'border-gray-600 hover:border-gray-500 bg-gray-800'
-                    : 'border-gray-300 hover:border-gray-400 bg-gray-50'
-                }`}
+                      ? 'border-gray-300 bg-gray-50 dark:bg-gray-700 cursor-not-allowed'
+                      : isDark
+                        ? 'border-gray-600 hover:border-gray-500 bg-gray-800'
+                        : 'border-gray-300 hover:border-gray-400 bg-gray-50'
+                  }`}
               >
                 <input {...getInputProps()} />
                 <div className="flex flex-col items-center space-y-2">
                   <FiUpload
-                    className={`h-8 w-8 ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}
+                    className={`h-8 w-8 ${isDark ? 'text-gray-400' : 'text-gray-500'
+                      }`}
                   />
                   {uploadingImages ? (
                     <p
-                      className={`text-sm ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}
+                      className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}
                     >
                       Uploading images...
                     </p>
@@ -629,16 +621,14 @@ const AddListings = ({ isDark }) => {
                   ) : (
                     <>
                       <p
-                        className={`text-sm ${
-                          isDark ? 'text-gray-300' : 'text-gray-600'
-                        }`}
+                        className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'
+                          }`}
                       >
                         Drag & drop images here, or click to select
                       </p>
                       <p
-                        className={`text-xs ${
-                          isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}
+                        className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}
                       >
                         Supports: JPG, PNG, WebP (Max 5MB each, up to 10 images)
                       </p>
@@ -651,9 +641,8 @@ const AddListings = ({ isDark }) => {
               {propertyData.images.length > 0 && (
                 <div className="mt-4">
                   <h4
-                    className={`text-sm font-medium mb-2 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}
+                    className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}
                   >
                     Uploaded Images ({propertyData.images.length})
                   </h4>
@@ -667,6 +656,9 @@ const AddListings = ({ isDark }) => {
                           src={imageUrl}
                           alt={`Property ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                          onError={(e) => {
+                            e.target.src = 'https://placehold.co/200x100?text=Preview';
+                          }}
                         />
                         <button
                           type="button"
@@ -740,13 +732,12 @@ const AddListings = ({ isDark }) => {
                     key={feature.key}
                     type="button"
                     onClick={() => handleFeatureToggle(feature.key)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      propertyData.features[feature.key]
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${propertyData.features[feature.key]
                         ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
                         : isDark
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {feature.label}
                   </button>
@@ -762,13 +753,12 @@ const AddListings = ({ isDark }) => {
                     key={amenity}
                     type="button"
                     onClick={() => handleAmenityToggle(amenity)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      propertyData.amenities.includes(amenity)
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${propertyData.amenities.includes(amenity)
                         ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
                         : isDark
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {amenity}
                   </button>
@@ -784,13 +774,12 @@ const AddListings = ({ isDark }) => {
                     key={rule}
                     type="button"
                     onClick={() => handleRuleToggle(rule)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      propertyData.rules.includes(rule)
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${propertyData.rules.includes(rule)
                         ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
                         : isDark
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {rule}
                   </button>

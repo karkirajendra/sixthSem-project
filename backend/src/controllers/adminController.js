@@ -645,7 +645,7 @@ export const getRecentListings = asyncHandler(async (req, res) => {
     image:
       listing.images && listing.images.length > 0
         ? listing.images[0]
-        : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200',
+        : 'https://placehold.co/200x150?text=No+Image',
     views: listing.views?.total || 0,
     likes: Math.floor(Math.random() * 50), // Placeholder for likes
   }));
@@ -691,8 +691,8 @@ export const getAdminProfile = asyncHandler(async (req, res) => {
         name: admin.name,
         email: admin.email,
         role: admin.role,
-        phone: admin.phone || 'Not provided',
-        avatar: admin.avatar || null,
+        phone: admin.profile?.phone || 'Not provided',
+        avatar: admin.profile?.avatar || null,
         createdAt: admin.createdAt,
         lastLogin: admin.lastLogin || admin.updatedAt,
         status: admin.status || 'active',
@@ -732,8 +732,10 @@ export const updateAdminProfile = asyncHandler(async (req, res) => {
   // Update fields
   if (name) admin.name = name;
   if (email) admin.email = email;
-  if (phone) admin.phone = phone;
-  if (avatar) admin.avatar = avatar;
+  // phone and avatar live inside the embedded profile sub-document
+  if (!admin.profile) admin.profile = {};
+  if (phone) admin.profile.phone = phone;
+  if (avatar) admin.profile.avatar = avatar;
 
   await admin.save();
 
@@ -745,8 +747,8 @@ export const updateAdminProfile = asyncHandler(async (req, res) => {
       name: admin.name,
       email: admin.email,
       role: admin.role,
-      phone: admin.phone,
-      avatar: admin.avatar,
+      phone: admin.profile?.phone,
+      avatar: admin.profile?.avatar,
     },
   });
 });
@@ -948,8 +950,8 @@ export const getAllPropertiesAdmin = asyncHandler(async (req, res) => {
       property.status === 'available'
         ? 'Active'
         : property.status === 'pending'
-        ? 'Pending'
-        : 'Inactive',
+          ? 'Pending'
+          : 'Inactive',
     owner: property.sellerId?.name || 'Unknown',
     created: property.createdAt.toLocaleDateString(),
     images: property.images || [],
@@ -1028,9 +1030,8 @@ export const togglePropertyFeatured = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: `Property ${
-      property.featured ? 'added to' : 'removed from'
-    } featured`,
+    message: `Property ${property.featured ? 'added to' : 'removed from'
+      } featured`,
     data: {
       id: property._id,
       title: property.title,
@@ -1144,6 +1145,14 @@ export const createPropertyAdmin = asyncHandler(async (req, res) => {
 // @route   POST /api/admin/analytics/track
 // @access  Public (for tracking user behavior)
 export const trackAnalyticsEvent = asyncHandler(async (req, res) => {
+  // Guard: req.body may be undefined if the request had no body / wrong Content-Type
+  if (!req.body || !req.body.type) {
+    return res.status(400).json({
+      success: false,
+      message: 'Analytics event type is required',
+    });
+  }
+
   const {
     type,
     sessionId,

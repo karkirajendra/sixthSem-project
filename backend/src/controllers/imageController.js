@@ -16,29 +16,18 @@ export const uploadImage = async (req, res) => {
       });
     }
 
-    // Use local storage - return file URL
-    const fileUrl = `${req.protocol}://${req.get('host')}/${req.file.path.replace(/\\/g, '/')}`;
-    
-    // Get image dimensions if possible (optional)
-    let width = null;
-    let height = null;
-    
-    // Try to get image dimensions using a simple method
-    try {
-      // You can add image processing library later if needed
-      // For now, we'll just return the URL
-    } catch (dimError) {
-      // Ignore dimension errors
-    }
-    
+    // Use relative path so it works through Vite proxy (/uploads → http://localhost:5000/uploads)
+    // Storing absolute localhost URLs causes issues when displayed from a different port
+    const relativePath = `/${req.file.path.replace(/\\/g, '/')}`;
+
     return res.status(200).json({
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        url: fileUrl,
+        url: relativePath,
         publicId: req.file.filename,
-        width: width,
-        height: height,
+        width: null,
+        height: null,
       },
     });
   } catch (error) {
@@ -73,11 +62,11 @@ export const uploadMultipleImages = async (req, res) => {
       });
     }
 
-    // Use local storage - return file URLs
+    // Use relative paths for all uploaded files (works through Vite proxy)
     const uploadedFiles = req.files.map((file) => {
-      const fileUrl = `${req.protocol}://${req.get('host')}/${file.path.replace(/\\/g, '/')}`;
+      const relativePath = `/${file.path.replace(/\\/g, '/')}`;
       return {
-        url: fileUrl,
+        url: relativePath,
         publicId: file.filename,
         width: null,
         height: null,
