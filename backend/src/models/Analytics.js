@@ -5,7 +5,7 @@ const AnalyticsSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['page_view', 'property_view', 'user_session'],
+      enum: ['page_view', 'property_view', 'user_session', 'custom_event', 'search', 'filter_applied', 'form_submit', 'error'],
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,

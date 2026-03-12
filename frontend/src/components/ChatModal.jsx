@@ -66,8 +66,14 @@ const ChatModal = ({ propertyId, sellerId, sellerInfo, propertyTitle, onClose })
   }, [currentUser, propertyId, sellerId]);
 
   const initializeWebSocket = (roomId) => {
+    const userId = currentUser?.id || currentUser?._id;
+    if (!userId) {
+      console.warn('Cannot initialize WebSocket: userId is undefined');
+      return;
+    }
+
     try {
-      const wsUrl = `ws://localhost:5000?roomId=${roomId}&userId=${currentUser.id}`;
+      const wsUrl = `ws://localhost:5000?roomId=${roomId}&userId=${userId}`;
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {

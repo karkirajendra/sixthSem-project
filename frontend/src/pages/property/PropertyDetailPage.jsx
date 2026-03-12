@@ -10,7 +10,7 @@ import ChatModal from '../../components/ChatModal';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import RecommendationSection from '../../components/recommendation/RecommendationSection';
+
 
 // Fixed PropertyDetailPage.jsx - Move seller definition after property is loaded
 
@@ -260,8 +260,8 @@ const PropertyDetailPage = () => {
                         alt={`Property view ${index + 1}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          // Fallback to placeholder if image fails to load
-                          e.target.src = `https://via.placeholder.com/800x600?text=Image+${index + 1}`;
+                          const noImgSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'%3E%3Crect width='800' height='600' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='24'%3ENo Image%3C/text%3E%3C/svg%3E`;
+                          e.target.src = noImgSvg;
                         }}
                       />
                     </SwiperSlide>
@@ -465,8 +465,6 @@ const PropertyDetailPage = () => {
         </div>
       </div>
 
-      {/* Recommendation Section */}
-      <RecommendationSection propertyId={id} />
 
       {/* Login Required Modal */}
       {showLoginModal && (

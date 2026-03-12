@@ -102,14 +102,15 @@ class AnalyticsTracker {
       const API_URL =
         import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
 
-      navigator.sendBeacon(
-        `${API_URL}/api/admin/analytics/track`,
-        JSON.stringify({
-          type: 'user_session',
-          sessionId: this.sessionId,
-          metadata: { duration },
-        })
-      );
+      const payload = JSON.stringify({
+        type: 'user_session',
+        sessionId: this.sessionId,
+        metadata: { duration },
+      });
+
+      // Convert to Blob to satisfy the application/json content-type for Express body parser
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon(`${API_URL}/api/admin/analytics/track`, blob);
     }
   }
 

@@ -219,15 +219,101 @@ const AddProperty = () => {
     'Students Welcome',
   ];
 
-  const provinces = [
-    'Koshi Province',
-    'Madhesh Province',
-    'Bagmati Province',
-    'Gandaki Province',
-    'Lumbini Province',
-    'Karnali Province',
-    'Sudurpashchim Province',
-  ];
+  // Nepal Province → City → ZipCode data
+  const nepalLocationData = {
+    'Koshi Province': {
+      'Biratnagar': '56613',
+      'Dharan': '56700',
+      'Itahari': '56705',
+      'Birtamod': '57204',
+      'Damak': '57217',
+      'Mechinagar': '57200',
+      'Urlabari': '56800',
+      'Inaruwa': '56721',
+      'Triyuga': '56900',
+      'Duhabi': '56626',
+    },
+    'Madhesh Province': {
+      'Janakpur': '45600',
+      'Birgunj': '44300',
+      'Kalaiya': '44100',
+      'Rajbiraj': '56100',
+      'Lahan': '56500',
+      'Jaleshwor': '46100',
+      'Gaur': '44600',
+      'Simara': '44200',
+      'Malangwa': '45900',
+      'Mirchaiya': '56400',
+    },
+    'Bagmati Province': {
+      'Kathmandu': '44600',
+      'Lalitpur': '44700',
+      'Bhaktapur': '44800',
+      'Banepa': '45209',
+      'Dhulikhel': '45200',
+      'Panauti': '45203',
+      'Kirtipur': '44618',
+      'Hetauda': '44107',
+      'Bharatpur': '44200',
+      'Thimi': '44806',
+      'Madhyapur Thimi': '44806',
+      'Bidur': '45300',
+    },
+    'Gandaki Province': {
+      'Pokhara': '33700',
+      'Gorkha': '35300',
+      'Baglung': '33100',
+      'Damauli': '35400',
+      'Besisahar': '33400',
+      'Waling': '33501',
+      'Beni': '33200',
+      'Manang': '34100',
+      'Mustang': '34500',
+    },
+    'Lumbini Province': {
+      'Butwal': '32907',
+      'Bhairahawa': '32900',
+      'Nepalgunj': '21900',
+      'Tansen': '32400',
+      'Kapilvastu': '32100',
+      'Tulsipur': '21800',
+      'Gulariya': '21600',
+      'Kohalpur': '21912',
+      'Bardaghat': '33102',
+      'Rampur': '32600',
+    },
+    'Karnali Province': {
+      'Birendranagar': '21201',
+      'Jumla': '21200',
+      'Dailekh': '21300',
+      'Salyan': '21100',
+      'Rukumkot': '22000',
+      'Dunai': '33900',
+      'Dipayal Silgadhi': '10900',
+    },
+    'Sudurpashchim Province': {
+      'Dhangadhi': '10900',
+      'Mahendranagar': '10400',
+      'Tikapur': '10800',
+      'Dadeldhura': '10700',
+      'Bajhang': '10600',
+      'Baitadi': '10500',
+      'Darchula': '10200',
+      'Amargadhi': '10700',
+    },
+  };
+
+  const provinces = Object.keys(nepalLocationData);
+
+  const getCitiesForProvince = (province) => {
+    if (!province || !nepalLocationData[province]) return [];
+    return Object.keys(nepalLocationData[province]);
+  };
+
+  const getZipCode = (province, city) => {
+    if (!province || !city || !nepalLocationData[province]) return '';
+    return nepalLocationData[province][city] || '';
+  };
 
   // Map event handlers
 const handleMapClick = useCallback(async (lat, lng) => {
@@ -425,6 +511,35 @@ const createShortSearchLocation = (result) => {
     if (name.includes('.')) {
       // Handle nested objects like address.street
       const [parent, child] = name.split('.');
+
+      if (parent === 'address' && child === 'state') {
+        // Province changed: reset city and auto-fill zip (none yet)
+        setPropertyData((prev) => ({
+          ...prev,
+          address: {
+            ...prev.address,
+            state: value,
+            city: '',
+            zipCode: '',
+          },
+        }));
+        return;
+      }
+
+      if (parent === 'address' && child === 'city') {
+        // City changed: auto-fill zip code
+        const zipCode = getZipCode(propertyData.address.state, value);
+        setPropertyData((prev) => ({
+          ...prev,
+          address: {
+            ...prev.address,
+            city: value,
+            zipCode: zipCode,
+          },
+        }));
+        return;
+      }
+
       setPropertyData((prev) => ({
         ...prev,
         [parent]: {
@@ -996,20 +1111,6 @@ const handleSubmit = async (e) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City
-                </label>
-                <input
-                  type="text"
-                  name="address.city"
-                  value={propertyData.address.city}
-                  onChange={handlePropertyChange}
-                  placeholder="City"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Province
                 </label>
                 <select
@@ -1029,15 +1130,53 @@ const handleSubmit = async (e) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  City
+                  {!propertyData.address.state && (
+                    <span className="ml-1 text-xs text-gray-400">(Select a province first)</span>
+                  )}
+                </label>
+                {propertyData.address.state ? (
+                  <select
+                    name="address.city"
+                    value={propertyData.address.city}
+                    onChange={handlePropertyChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select City</option>
+                    {getCitiesForProvince(propertyData.address.state).map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    disabled
+                    placeholder="Select a province first"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Zip Code
+                  {propertyData.address.city && propertyData.address.zipCode && (
+                    <span className="ml-1 text-xs text-green-600">(Auto-filled)</span>
+                  )}
                 </label>
                 <input
                   type="text"
                   name="address.zipCode"
                   value={propertyData.address.zipCode}
                   onChange={handlePropertyChange}
-                  placeholder="Zip/Postal code"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={propertyData.address.city ? 'Zip/Postal code' : 'Auto-filled on city selection'}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    propertyData.address.zipCode
+                      ? 'border-green-300 bg-green-50'
+                      : 'border-gray-300'
+                  }`}
                 />
               </div>
 

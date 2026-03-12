@@ -144,10 +144,11 @@ const PropertyCard = ({ property, onWishlistUpdate }) => {
           alt={title || 'Property'} 
           className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
           onError={(e) => {
-            // Fallback to placeholder if image fails to load
-            if (e.target.src !== 'https://via.placeholder.com/400x300?text=No+Image') {
+            // Fallback to inline SVG placeholder (always available, no external request)
+            const noImgSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='16'%3ENo Image%3C/text%3E%3C/svg%3E`;
+            if (e.target.src !== noImgSvg) {
               console.error('Image failed to load:', e.target.src, 'Property:', title);
-              e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+              e.target.src = noImgSvg;
             }
           }}
         />

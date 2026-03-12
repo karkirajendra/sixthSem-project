@@ -6,7 +6,7 @@ import PropertyCard from '../../components/PropertyCard';
 import SearchFilters from '../../components/SearchFilters';
 import SuperSearchBar from '../../components/superSearch/SuperSearchBar';
 import { FaSort, FaFilter } from 'react-icons/fa';
-import RecommendationSection from '../../components/recommendation/RecommendationSection';
+
 import { getFormattedPropertyImage } from '../../utils/imageUtils';
 
 const PropertiesPage = () => {
@@ -586,8 +586,6 @@ if (superSearchQuery) {
           </div>
         </div>
 
-        {/* Recommendation Section */}
-        <RecommendationSection searchCriteria={searchCriteria} />
       </div>
     </div>
   );

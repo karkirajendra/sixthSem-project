@@ -420,7 +420,7 @@ const FeaturedProperties = () => {
       )}
 
       {/* Custom CSS for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes progressBar {
           from {
             transform: translateX(-100%);
