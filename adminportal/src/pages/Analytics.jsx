@@ -50,41 +50,9 @@ const Analytics = () => {
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching analytics data:', error);
-
-      // Fallback to mock data
-      setAnalyticsData({
-        dailyVisits: [450, 680, 520, 750, 630, 820, 950],
-        weeklyLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        totalVisitors: 15672,
-        totalPageViews: 42893,
-        conversionRate: 3.2,
-        avgSessionTime: '4m 32s',
-        topCities: [
-          { city: 'Kathmandu', visits: 4500 },
-          { city: 'Pokhara', visits: 3200 },
-          { city: 'Lalitpur', visits: 2800 },
-          { city: 'Bhaktapur', visits: 2300 },
-          { city: 'Biratnagar', visits: 2100 },
-        ],
-        deviceStats: {
-          mobile: 45,
-          desktop: 40,
-          tablet: 15,
-        },
-        topProperties: [
-          { title: 'Luxury Downtown Apartment', views: 1850 },
-          { title: 'Modern Studio Near Campus', views: 1560 },
-          { title: 'Cozy 2BR in Suburbs', views: 1340 },
-          { title: 'Penthouse with City View', views: 1220 },
-          { title: 'Shared Student Housing', views: 980 },
-        ],
-      });
-
-      setRealtimeData({
-        activeSessions: 24,
-        recentPageViews: 156,
-        lastUpdated: new Date().toISOString(),
-      });
+      // Keep existing data on transient errors instead of showing static mock numbers
+      setAnalyticsData((prev) => prev || {});
+      setRealtimeData((prev) => prev || {});
     } finally {
       setLoading(false);
     }
@@ -235,9 +203,9 @@ const Analytics = () => {
             <div>
               <p className="text-sm font-medium text-blue-600">Visitors</p>
               <p className="text-xl font-bold">
-                {analyticsData?.totalVisitors?.toLocaleString() || '15,672'}
+                {(analyticsData?.totalVisitors ?? 0).toLocaleString()}
               </p>
-              <p className="text-xs text-blue-500">+12.5% from last week</p>
+              <p className="text-xs text-blue-500">Live data</p>
             </div>
           </div>
         </div>
@@ -250,9 +218,9 @@ const Analytics = () => {
             <div>
               <p className="text-sm font-medium text-green-600">Page Views</p>
               <p className="text-xl font-bold">
-                {analyticsData?.totalPageViews?.toLocaleString() || '42,893'}
+                {(analyticsData?.totalPageViews ?? 0).toLocaleString()}
               </p>
-              <p className="text-xs text-green-500">+8.2% from last week</p>
+              <p className="text-xs text-green-500">Live data</p>
             </div>
           </div>
         </div>
@@ -267,9 +235,12 @@ const Analytics = () => {
                 Conversion Rate
               </p>
               <p className="text-xl font-bold">
-                {analyticsData?.conversionRate || '3.2'}%
+                {Number.isFinite(analyticsData?.conversionRate)
+                  ? analyticsData.conversionRate
+                  : 0}
+                %
               </p>
-              <p className="text-xs text-purple-500">+0.8% from last week</p>
+              <p className="text-xs text-purple-500">Live data</p>
             </div>
           </div>
         </div>
@@ -284,9 +255,9 @@ const Analytics = () => {
                 Avg. Session Time
               </p>
               <p className="text-xl font-bold">
-                {analyticsData?.avgSessionTime || '4m 32s'}
+                {analyticsData?.avgSessionTime || '—'}
               </p>
-              <p className="text-xs text-amber-500">+12s from last week</p>
+              <p className="text-xs text-amber-500">Live data</p>
             </div>
           </div>
         </div>

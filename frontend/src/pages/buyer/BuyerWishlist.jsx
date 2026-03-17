@@ -16,13 +16,14 @@ const BuyerWishlist = () => {
   // Fetch wishlist properties
   useEffect(() => {
     const loadWishlist = async () => {
-      if (!currentUser || !currentUser.id) {
+      const userId = currentUser?._id || currentUser?.id;
+      if (!userId) {
         setLoading(false);
         return;
       }
 
       try {
-        const wishlistProperties = await getWishlistByUserId(currentUser.id);
+        const wishlistProperties = await getWishlistByUserId(userId);
 
         if (wishlistProperties.length === 0) {
           setWishlist([]);
@@ -44,13 +45,14 @@ const BuyerWishlist = () => {
 
   // Handle remove from wishlist
   const handleRemove = async (propertyId) => {
-    if (!currentUser || !currentUser.id) {
+    const userId = currentUser?._id || currentUser?.id;
+    if (!userId) {
       toast.error('You need to be logged in to modify your wishlist');
       return;
     }
 
     try {
-      const response = await removeFromWishlist(currentUser.id, propertyId);
+      const response = await removeFromWishlist(userId, propertyId);
       if (response.success) {
         // Update the local state by filtering out the removed property
         setWishlist(wishlist.filter(property =>

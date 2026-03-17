@@ -545,16 +545,28 @@ export const addToWishlist = async (userId, propertyId) => {
       headers: createHeaders(true),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-
-      // Update localStorage as backup
-      updateLocalStorageWishlist(userId, propertyId, 'add');
-
-      return { success: true, message: data.message || 'Added to wishlist' };
+    if (!response.ok) {
+      // Don't treat real API errors (400/401/403/404) as "API unavailable".
+      // Surface them to the UI so we don't get out-of-sync with backend state.
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        // ignore parse errors
+      }
+      return {
+        success: false,
+        message: data?.message || `Failed to add to wishlist (HTTP ${response.status})`,
+        status: response.status,
+      };
     }
 
-    throw new Error('API unavailable');
+    const data = await response.json();
+
+    // Update localStorage as backup
+    updateLocalStorageWishlist(userId, propertyId, 'add');
+
+    return { success: true, message: data.message || 'Added to wishlist' };
   } catch (error) {
     console.warn('Using localStorage fallback for addToWishlist');
 
@@ -577,16 +589,27 @@ export const removeFromWishlist = async (userId, propertyId) => {
       headers: createHeaders(true),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-
-      // Update localStorage as backup
-      updateLocalStorageWishlist(userId, propertyId, 'remove');
-
-      return { success: true, message: data.message || 'Removed from wishlist' };
+    if (!response.ok) {
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        // ignore parse errors
+      }
+      return {
+        success: false,
+        message:
+          data?.message || `Failed to remove from wishlist (HTTP ${response.status})`,
+        status: response.status,
+      };
     }
 
-    throw new Error('API unavailable');
+    const data = await response.json();
+
+    // Update localStorage as backup
+    updateLocalStorageWishlist(userId, propertyId, 'remove');
+
+    return { success: true, message: data.message || 'Removed from wishlist' };
   } catch (error) {
     console.warn('Using localStorage fallback for removeFromWishlist');
 
@@ -612,13 +635,20 @@ export const getWishlistByUserId = async (userId) => {
       headers: createHeaders(true),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      const wishlistItems = data.data || [];
-      return wishlistItems.map(item => item.property || item);
+    if (!response.ok) {
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        // ignore parse errors
+      }
+      console.warn('Failed to fetch wishlist from API:', response.status, data);
+      return [];
     }
 
-    throw new Error('API unavailable');
+    const data = await response.json();
+    const wishlistItems = data.data || [];
+    return wishlistItems.map(item => item.property || item);
   } catch (error) {
     console.warn('Using localStorage fallback for getWishlistByUserId');
     try {

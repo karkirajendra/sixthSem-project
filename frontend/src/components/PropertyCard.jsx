@@ -28,8 +28,9 @@ const PropertyCard = ({ property, onWishlistUpdate }) => {
 
   // Load initial wishlist state from localStorage
   useEffect(() => {
-    if (currentUser && currentUser.id && id) {
-      const wishlistState = getWishlistState(currentUser.id, id);
+    const userId = currentUser?._id || currentUser?.id;
+    if (userId && id) {
+      const wishlistState = getWishlistState(userId, id);
       setIsInWishlist(wishlistState);
     }
   }, [currentUser, id]);
@@ -76,7 +77,8 @@ const PropertyCard = ({ property, onWishlistUpdate }) => {
     setIsWishlistUpdating(true);
     try {
       if (isInWishlist) {
-        const response = await removeFromWishlist(currentUser.id, id);
+        const userId = currentUser?._id || currentUser?.id;
+        const response = await removeFromWishlist(userId, id);
         if (response.success) {
           setIsInWishlist(false);
           toast.success('Removed from wishlist');
@@ -87,7 +89,8 @@ const PropertyCard = ({ property, onWishlistUpdate }) => {
           toast.error(response.message || 'Failed to remove from wishlist');
         }
       } else {
-        const response = await addToWishlist(currentUser.id, id);
+        const userId = currentUser?._id || currentUser?.id;
+        const response = await addToWishlist(userId, id);
         if (response.success) {
           setIsInWishlist(true);
           toast.success('Added to wishlist');

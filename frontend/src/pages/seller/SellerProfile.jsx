@@ -329,7 +329,7 @@ const SellerProfile = () => {
                 Security Settings
               </h2>
               
-              <div className="space-y-6">
+              <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 <div className="space-y-3">
                   <label className="block text-sm font-semibold text-gray-700">Current Password</label>
                   <div className="relative group">
@@ -402,14 +402,14 @@ const SellerProfile = () => {
                 </div>
                 
                 <button
-                  onClick={handlePasswordSubmit}
+                  type="submit"
                   disabled={loading}
                   className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-xl hover:from-blue-600 hover:to-teal-600 disabled:opacity-50 transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold cursor-pointer"
                 >
                   <FiSave className="mr-3 h-5 w-5" /> 
                   {loading ? 'Updating Password...' : 'Update Password'}
                 </button>
-              </div>
+              </form>
             </div>
           </div>
 

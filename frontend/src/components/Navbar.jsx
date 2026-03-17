@@ -140,6 +140,20 @@ const Navbar = () => {
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-teal-500"></div>
             )}
           </div>
+
+          <div className="relative">
+            <Link
+              to="/contact"
+              className={`${
+                scrolled || location.pathname !== '/' ? 'text-gray-700' : 'text-white'
+              } hover:text-primary-500 transition-colors`}
+            >
+              Contact
+            </Link>
+            {isActive('/contact') && (
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-teal-500"></div>
+            )}
+          </div>
       
           {isLoggedIn ? (
             <div className="relative" ref={profileRef}>

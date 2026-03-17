@@ -12,14 +12,26 @@ export const submitContactForm = async (formData) => {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        // ignore
+      }
+
+      return {
+        success: false,
+        status: response.status,
+        message: data?.message || `HTTP error! status: ${response.status}`,
+        errors: data?.errors || [],
+      };
     }
 
     const data = await response.json();
     return { success: true, data };
   } catch (error) {
     console.error('Error submitting contact form:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 };
 

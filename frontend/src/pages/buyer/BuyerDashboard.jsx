@@ -14,16 +14,17 @@ const BuyerDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call
     const loadStats = async () => {
       try {
         const data = await getDashboardStats();
         if (data) {
           setStats({
             wishlistCount: data.wishlistCount || 0,
-            inquiriesCount: data.inquiriesCount || 0, // Using 0 because backend might not have inquiriesCount yet
+            inquiriesCount: data.inquiriesCount || 0,
             savedSearches: data.savedLocations?.length || 0,
             recentWishlist: data.recentWishlist || [],
+            recentChats: data.recentChats || [],
+            unreadMessages: data.unreadMessages || 0,
           });
         }
         setLoading(false);
@@ -137,50 +138,52 @@ const BuyerDashboard = () => {
       {/* Recent Activity Section */}
       <div className="bg-white p-6 rounded-xl shadow-sm">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h2>
-        
-        <div className="space-y-3">
-          <div className="flex items-start p-4 hover:bg-gray-50 rounded-lg transition-colors">
-            <div className="p-3 rounded-full mr-4 bg-indigo-100 text-indigo-600">
-              <FaHome />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">
-                You contacted the owner of "Cozy Apartment in Kathmandu"
-              </p>
-              <p className="text-xs text-gray-500 mt-1">2 days ago</p>
-            </div>
-            <div className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
-              Replied
-            </div>
+
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse h-16 bg-gray-100 rounded-lg" />
+            ))}
           </div>
-          
-          <div className="flex items-start p-4 hover:bg-gray-50 rounded-lg transition-colors">
-            <div className="p-3 rounded-full mr-4 bg-pink-100 text-pink-600">
-              <FaHeart />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">
-                You saved "Modern Flat in Pokhara" to wishlist
-              </p>
-              <p className="text-xs text-gray-500 mt-1">1 week ago</p>
-            </div>
+        ) : (
+          <div className="space-y-3">
+            {(stats.recentChats || []).slice(0, 2).map((room) => (
+              <div key={room._id} className="flex items-start p-4 hover:bg-gray-50 rounded-lg transition-colors">
+                <div className="p-3 rounded-full mr-4 bg-indigo-100 text-indigo-600">
+                  <FaHome />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">
+                    You contacted the owner of "{room.propertyId?.title || 'a property'}"
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {room.lastMessage?.text ? room.lastMessage.text.slice(0, 50) : 'Open chat to view messages'}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {(stats.recentWishlist || []).slice(0, 2).map((item) => (
+              <div key={item._id} className="flex items-start p-4 hover:bg-gray-50 rounded-lg transition-colors">
+                <div className="p-3 rounded-full mr-4 bg-pink-100 text-pink-600">
+                  <FaHeart />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">
+                    You saved "{item.property?.title || 'a property'}" to wishlist
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {item.property?.location || 'Location not specified'}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {!((stats.recentChats || []).length || (stats.recentWishlist || []).length) && (
+              <p className="text-sm text-gray-500">No recent activity yet.</p>
+            )}
           </div>
-          
-          <div className="flex items-start p-4 hover:bg-gray-50 rounded-lg transition-colors">
-            <div className="p-3 rounded-full mr-4 bg-blue-100 text-blue-600">
-              <FaEnvelope />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">
-                You inquired about "Luxury Apartment in Lalitpur"
-              </p>
-              <p className="text-xs text-gray-500 mt-1">2 weeks ago</p>
-            </div>
-            <div className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
-              Pending
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
     </div>

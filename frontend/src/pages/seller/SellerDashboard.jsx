@@ -34,11 +34,11 @@ const SellerDashboard = () => {
 
   // Chart data
   const chartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels: stats?.messagesChartLabels || [],
     datasets: [
       {
-        label: 'Property Views',
-        data: stats?.viewsChartData || [0, 0, 0, 0, 0, 0, 0],
+        label: 'Messages Received',
+        data: stats?.messagesChartData || [],
         backgroundColor: '#3b82f6',
       },
     ],
@@ -53,7 +53,7 @@ const SellerDashboard = () => {
       },
       title: {
         display: true,
-        text: 'Views Over Last 7 Days',
+        text: 'Messages Over Last 7 Days',
       },
     },
     scales: {
@@ -88,7 +88,7 @@ const SellerDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <StatCard 
             title="Total Listings" 
-            value={stats?.totalListings || 0} 
+            value={stats?.totalProperties || 0} 
             icon={<FaList className="text-xl" />} 
             color="blue"
           />
@@ -98,7 +98,6 @@ const SellerDashboard = () => {
             value={stats?.totalViews || 0} 
             icon={<FaEye className="text-xl" />} 
             color="green"
-            change={15}
           />
           
           <StatCard 
@@ -114,7 +113,7 @@ const SellerDashboard = () => {
         {/* Views Chart */}
         <div className="bg-white p-6 rounded-lg shadow-sm lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Property Views Trend</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Message Trend</h2>
             <div className="flex items-center text-sm text-gray-500">
               <span>Last 7 days</span>
             </div>
@@ -219,45 +218,39 @@ const SellerDashboard = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center border-b border-gray-100 pb-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                  <FaEye className="text-green-600" />
+              {/* Recent chats */}
+              {(stats?.recentChats || []).slice(0, 2).map((room) => (
+                <div key={room._id} className="flex items-center border-b border-gray-100 pb-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                    <FaEnvelope className="text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-700">
+                      New message about {room.propertyId?.title || 'a property'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {room.lastMessage?.text ? room.lastMessage.text.slice(0, 40) : 'Open chat to view'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-700">Someone viewed your Modern Apartment</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
+              ))}
+
+              {/* Recent listings */}
+              {(stats?.recentListings || []).slice(0, 2).map((p, idx) => (
+                <div key={p._id || idx} className="flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+                    <FaList className="text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-700">You listed {p.title}</p>
+                    <p className="text-xs text-gray-500 capitalize">{p.status || 'pending'}</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center border-b border-gray-100 pb-3">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                  <FaEnvelope className="text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-gray-700">New inquiry for Spacious Family House</p>
-                  <p className="text-xs text-gray-500">1 day ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center border-b border-gray-100 pb-3">
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3">
-                  <FaEye className="text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-gray-700">3 people viewed your Luxury Villa</p>
-                  <p className="text-xs text-gray-500">2 days ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
-                  <FaList className="text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-gray-700">You added Studio Apartment listing</p>
-                  <p className="text-xs text-gray-500">3 days ago</p>
-                </div>
-              </div>
+              ))}
+
+              {!((stats?.recentChats || []).length || (stats?.recentListings || []).length) && (
+                <p className="text-sm text-gray-500">No recent activity yet.</p>
+              )}
             </div>
           )}
         </div>

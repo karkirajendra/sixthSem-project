@@ -5,6 +5,7 @@ class AnalyticsTracker {
     this.sessionStartTime = Date.now();
     this.pageViews = [];
     this.isTracking = true;
+    this.apiBaseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
 
     // Track page visibility for session duration
     this.setupVisibilityTracking();
@@ -62,7 +63,7 @@ class AnalyticsTracker {
         'X-Session-Id': this.sessionId,
       };
 
-      await fetch('/api/admin/analytics/track', {
+      await fetch(`${this.apiBaseUrl}/api/admin/analytics/track`, {
         method: 'POST',
         headers,
         body: JSON.stringify(eventData),
@@ -95,14 +96,15 @@ class AnalyticsTracker {
 
     // Only track sessions longer than 10 seconds
     if (duration > 10) {
-      navigator.sendBeacon(
-        '/api/admin/analytics/track',
-        JSON.stringify({
-          type: 'user_session',
-          sessionId: this.sessionId,
-          metadata: { duration },
-        })
-      );
+      const payload = JSON.stringify({
+        type: 'user_session',
+        sessionId: this.sessionId,
+        metadata: { duration },
+      });
+
+      // Use Blob so backend receives application/json
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon(`${this.apiBaseUrl}/api/admin/analytics/track`, blob);
     }
   }
 

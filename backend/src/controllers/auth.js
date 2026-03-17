@@ -144,6 +144,44 @@ export const logoutUser = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Change current user's password
+// @route   PUT /api/auth/change-password
+// @access  Private
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    res.status(400);
+    throw new Error('Current password and new password are required');
+  }
+
+  // Load password hash for comparison
+  const user = await User.findById(req.user._id).select('+password');
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  if (!(await user.comparePassword(currentPassword))) {
+    res.status(400);
+    throw new Error('Current password is incorrect');
+  }
+
+  if (newPassword.length < 6) {
+    res.status(400);
+    throw new Error('Password must be at least 6 characters long');
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Password updated successfully',
+  });
+});
+
 // @desc    Get dashboard stats for user
 // @route   GET /api/auth/dashboard-stats
 // @access  Private
@@ -155,31 +193,65 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
 
   if (userRole === 'buyer') {
     const Wishlist = (await import('../models/Wishlist.js')).default;
+    const ChatRoom = (await import('../models/ChatRoom.js')).default;
+    const Message = (await import('../models/Message.js')).default;
+
     const wishlistItems = await Wishlist.find({ user: userId })
       .populate('property', 'title location price images status')
-      .sort('-createdAt');
+      .sort('-addedAt');
 
     const savedLocations = [
       ...new Set(
         wishlistItems
-          .map((item) => item.property?.location?.city)
+          .map((item) => item.property?.location)
           .filter(Boolean)
       ),
     ];
 
+    const inquiriesCount = await Message.countDocuments({ senderId: userId });
+    const unreadMessages = await Message.countDocuments({
+      receiverId: userId,
+      read: false,
+    });
+
+    const recentChats = await ChatRoom.find({ participants: userId })
+      .sort('-updatedAt')
+      .limit(3)
+      .populate('participants', 'name role profile')
+      .populate('propertyId', 'title location price images type')
+      .populate({
+        path: 'lastMessage',
+        populate: { path: 'senderId receiverId', select: 'name role profile' },
+      })
+      .lean();
+
     stats = {
       wishlistCount: wishlistItems.length,
+      inquiriesCount,
+      unreadMessages,
       savedLocations,
       recentWishlist: wishlistItems.slice(0, 3),
+      recentChats,
     };
   } else if (userRole === 'seller') {
     const Property = (await import('../models/Property.js')).default;
+    const ChatRoom = (await import('../models/ChatRoom.js')).default;
+    const Message = (await import('../models/Message.js')).default;
+
     const sellerProperties = await Property.find({ sellerId: userId }).sort(
       '-createdAt'
     );
 
     const totalViews = sellerProperties.reduce(
       (sum, property) => sum + (property.views?.total || 0),
+      0
+    );
+    const loggedInViews = sellerProperties.reduce(
+      (sum, property) => sum + (property.views?.loggedIn || 0),
+      0
+    );
+    const anonymousViews = sellerProperties.reduce(
+      (sum, property) => sum + (property.views?.anonymous || 0),
       0
     );
     const averagePrice =
@@ -190,6 +262,57 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
           )
         : 0;
 
+    const unreadMessages = await Message.countDocuments({
+      receiverId: userId,
+      read: false,
+    });
+
+    const recentChats = await ChatRoom.find({ participants: userId })
+      .sort('-updatedAt')
+      .limit(3)
+      .populate('participants', 'name role profile')
+      .populate('propertyId', 'title location price images type')
+      .populate({
+        path: 'lastMessage',
+        populate: { path: 'senderId receiverId', select: 'name role profile' },
+      })
+      .lean();
+
+    // Chart: messages received by day (last 7 days)
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - 6);
+
+    const messagesPerDay = await Message.aggregate([
+      {
+        $match: {
+          receiverId: req.user._id,
+          createdAt: { $gte: start },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const messageCountByDate = new Map(
+      messagesPerDay.map((d) => [d._id, d.count])
+    );
+    const messagesChartLabels = [];
+    const messagesChartData = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      messagesChartLabels.push(key);
+      messagesChartData.push(messageCountByDate.get(key) || 0);
+    }
+
     stats = {
       totalProperties: sellerProperties.length,
       activeListings: sellerProperties.filter(
@@ -199,8 +322,14 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         (property) => property.status !== 'available'
       ).length,
       totalViews,
+      loggedInViews,
+      anonymousViews,
       averageListingPrice: averagePrice,
       recentListings: sellerProperties.slice(0, 3),
+      unreadMessages,
+      recentChats,
+      messagesChartLabels,
+      messagesChartData,
     };
   }
 

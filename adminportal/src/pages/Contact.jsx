@@ -52,7 +52,7 @@ const Contact = () => {
       await updateContactStatus(contactId, status);
       setContacts(
         contacts.map((contact) =>
-          contact.id === contactId ? { ...contact, status } : contact
+          (contact.id || contact._id) === contactId ? { ...contact, status } : contact
         )
       );
     } catch (error) {
@@ -60,7 +60,7 @@ const Contact = () => {
       // Optimistic update for fallback
       setContacts(
         contacts.map((contact) =>
-          contact.id === contactId ? { ...contact, status } : contact
+          (contact.id || contact._id) === contactId ? { ...contact, status } : contact
         )
       );
     }
@@ -70,11 +70,11 @@ const Contact = () => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
       try {
         await deleteContact(contactId);
-        setContacts(contacts.filter((contact) => contact.id !== contactId));
+        setContacts(contacts.filter((contact) => (contact.id || contact._id) !== contactId));
       } catch (error) {
         console.error('Error deleting contact:', error);
         // Still remove from UI for better UX
-        setContacts(contacts.filter((contact) => contact.id !== contactId));
+        setContacts(contacts.filter((contact) => (contact.id || contact._id) !== contactId));
       }
     }
   };
@@ -144,7 +144,7 @@ const Contact = () => {
         <div className="divide-y divide-gray-200">
           {filteredContacts.map((contact) => (
             <div
-              key={contact.id}
+              key={contact.id || contact._id}
               className="p-6"
             >
               <div className="flex items-start justify-between">
@@ -171,7 +171,7 @@ const Contact = () => {
                 <div className="ml-4 flex space-x-2">
                   {contact.status === 'New' && (
                     <button
-                      onClick={() => handleStatusUpdate(contact.id, 'Replied')}
+                      onClick={() => handleStatusUpdate(contact.id || contact._id, 'Replied')}
                       className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
                       title="Mark as replied"
                     >
@@ -179,7 +179,7 @@ const Contact = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => handleDelete(contact.id)}
+                    onClick={() => handleDelete(contact.id || contact._id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-full"
                     title="Delete message"
                   >

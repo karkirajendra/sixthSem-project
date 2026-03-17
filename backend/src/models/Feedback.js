@@ -12,7 +12,13 @@ const feedbackSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['property_review', 'platform_feedback', 'bug_report', 'suggestion'],
+    enum: [
+      'property_review',
+      'platform_feedback',
+      'bug_report',
+      'suggestion',
+      'testimonial',
+    ],
     required: [true, 'Feedback type is required'],
   },
   subject: {

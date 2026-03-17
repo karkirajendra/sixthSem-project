@@ -194,7 +194,8 @@ export const savePage = async (pageData) => {
       content: pageData.content,
       type: pageData.type,
       status: pageData.status?.toLowerCase() || 'draft',
-      featuredImage: pageData.featuredImage,
+      featuredImage:
+        typeof pageData.featuredImage === 'string' ? pageData.featuredImage : undefined,
       seoMeta: pageData.seoMeta || {},
     };
 

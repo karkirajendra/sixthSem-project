@@ -96,7 +96,13 @@ export const validateProperty = [
 // Feedback validation
 export const validateFeedback = [
   body('type')
-    .isIn(['property_review', 'platform_feedback', 'bug_report', 'suggestion'])
+    .isIn([
+      'property_review',
+      'platform_feedback',
+      'bug_report',
+      'suggestion',
+      'testimonial',
+    ])
     .withMessage('Invalid feedback type'),
 
   body('subject')

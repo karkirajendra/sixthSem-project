@@ -20,9 +20,8 @@ const ChatModal = ({ propertyId, sellerId, sellerInfo, propertyTitle, onClose })
   const [typingUser, setTypingUser] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
-  const wsRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
   const [messageIds, setMessageIds] = useState(new Set()); // Track message IDs to prevent duplicates
+  const pollIntervalRef = useRef(null);
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -41,8 +40,28 @@ const ChatModal = ({ propertyId, sellerId, sellerInfo, propertyTitle, onClose })
         // Mark messages as read
         await markMessagesAsRead(room._id);
 
-        // Initialize WebSocket connection
-        initializeWebSocket(room._id);
+        // Start polling for new messages (backend does not support WebSockets)
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = setInterval(async () => {
+          try {
+            const latest = await getMessages(room._id);
+            setMessages(prev => {
+              const existing = new Set(prev.map(m => m._id));
+              const merged = [...prev];
+              for (const msg of latest) {
+                if (!existing.has(msg._id)) merged.push(msg);
+              }
+              return merged;
+            });
+            setMessageIds(prev => {
+              const next = new Set(prev);
+              for (const msg of latest) next.add(msg._id);
+              return next;
+            });
+          } catch (e) {
+            // Keep quiet; avoid spamming the UI on transient failures
+          }
+        }, 2500);
       } catch (err) {
         setError("Failed to load chat");
         console.error("Error initializing chat:", err);
@@ -56,81 +75,9 @@ const ChatModal = ({ propertyId, sellerId, sellerInfo, propertyTitle, onClose })
     }
 
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
   }, [currentUser, propertyId, sellerId]);
-
-  const initializeWebSocket = (roomId) => {
-    const userId = currentUser?.id || currentUser?._id;
-    if (!userId) {
-      console.warn('Cannot initialize WebSocket: userId is undefined');
-      return;
-    }
-
-    try {
-      const wsUrl = `ws://localhost:5000?roomId=${roomId}&userId=${userId}`;
-      wsRef.current = new WebSocket(wsUrl);
-
-      wsRef.current.onopen = () => {
-        console.log('WebSocket connected for room:', roomId);
-        setError("");
-      };
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('WebSocket message received:', data);
-          
-          if (data.type === 'new_message') {
-            // Check if message already exists to prevent duplicates
-            if (!messageIds.has(data.message._id)) {
-              setMessages(prev => [...prev, data.message]);
-              setMessageIds(prev => new Set(prev).add(data.message._id));
-            }
-          } else if (data.type === 'user_typing') {
-            if (data.userId !== currentUser.id) {
-              setTypingUser(data.userName || 'Someone');
-              setIsTyping(true);
-              setTimeout(() => {
-                setIsTyping(false);
-                setTypingUser(null);
-              }, 3000);
-            }
-          } else if (data.type === 'message_read') {
-            setMessages(prev => prev.map(msg => 
-              msg._id === data.messageId ? { ...msg, read: true } : msg
-            ));
-          }
-        } catch (err) {
-          console.error('Error parsing WebSocket message:', err);
-        }
-      };
-
-      wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setError("Connection error - messages may not update in real-time");
-      };
-
-      wsRef.current.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
-        // Attempt to reconnect after 3 seconds
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (roomId) {
-            console.log('Attempting to reconnect WebSocket...');
-            initializeWebSocket(roomId);
-          }
-        }, 3000);
-      };
-    } catch (error) {
-      console.error('Failed to initialize WebSocket:', error);
-      setError("Failed to connect - messages may not update in real-time");
-    }
-  };
 
   useEffect(() => {
     scrollToBottom();
@@ -171,14 +118,8 @@ const ChatModal = ({ propertyId, sellerId, sellerInfo, propertyTitle, onClose })
   };
 
   const handleTyping = () => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'typing',
-        roomId: chatRoom._id,
-        userId: currentUser.id,
-        userName: currentUser.name
-      }));
-    }
+    // Typing indicators require realtime transport (WebSocket/socket.io).
+    // Backend currently uses REST-only chat, so this is intentionally a no-op.
   };
 
   const getMessageInfo = (msg) => {

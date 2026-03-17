@@ -15,6 +15,8 @@ import BlogPage from "./pages/cms/BlogPage";
 import BlogPostPage from "./pages/cms/BlogPostPage";
 import PrivacyPage from "./pages/cms/PrivacyPage";
 import TermsPage from "./pages/cms/TermsPage";
+import CmsPage from "./pages/cms/CmsPage";
+import ContactPage from "./pages/ContactPage";
 import CustomToaster from "./components/toaster/CustomToaster";
 
 // Buyer pages
@@ -101,6 +103,8 @@ function App() {
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="/pages/:slug" element={<CmsPage />} />
+        <Route path="/contact" element={<ContactPage />} />
 
         {/* Buyer Routes */}
         <Route

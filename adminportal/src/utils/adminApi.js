@@ -866,12 +866,13 @@ export const adminApi = {
   // Blog Management
   getBlogPosts: async () => {
     try {
+      await ensureAuthenticated();
       const response = await fetch(`${API_URL}/api/cms/blog`, {
         headers: createHeaders(true),
       });
 
       const data = await handleApiResponse(response);
-      return data.posts || [];
+      return data.data || [];
     } catch (error) {
       console.error('Error fetching blog posts:', error);
       return [];
@@ -880,6 +881,7 @@ export const adminApi = {
 
   createBlogPost: async (postData) => {
     try {
+      await ensureAuthenticated();
       const response = await fetch(`${API_URL}/api/cms/blog`, {
         method: 'POST',
         headers: createHeaders(true),
@@ -887,7 +889,7 @@ export const adminApi = {
       });
 
       const data = await handleApiResponse(response);
-      return { success: true, post: data.post };
+      return { success: true, post: data.data };
     } catch (error) {
       return { success: false, message: error.message };
     }
@@ -895,6 +897,7 @@ export const adminApi = {
 
   updateBlogPost: async (postId, postData) => {
     try {
+      await ensureAuthenticated();
       const response = await fetch(`${API_URL}/api/cms/blog/${postId}`, {
         method: 'PUT',
         headers: createHeaders(true),
@@ -902,7 +905,22 @@ export const adminApi = {
       });
 
       const data = await handleApiResponse(response);
-      return { success: true, post: data.post };
+      return { success: true, post: data.data };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  },
+
+  deleteBlogPost: async (postId) => {
+    try {
+      await ensureAuthenticated();
+      const response = await fetch(`${API_URL}/api/cms/blog/${postId}`, {
+        method: 'DELETE',
+        headers: createHeaders(true),
+      });
+
+      await handleApiResponse(response);
+      return { success: true };
     } catch (error) {
       return { success: false, message: error.message };
     }
@@ -1238,7 +1256,22 @@ export const getContacts = async () => {
     });
 
     const data = await handleApiResponse(response);
-    return data.data || [];
+    const contacts = data.data || [];
+    return contacts.map((c) => ({
+      id: c._id,
+      _id: c._id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone,
+      subject: c.subject,
+      message: c.message,
+      date: c.createdAt ? new Date(c.createdAt).toISOString().split('T')[0] : '',
+      status: c.status,
+      category: c.category,
+      priority: c.priority,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    }));
   } catch (error) {
     console.error('Error fetching contacts:', error);
     // Fallback to mock data

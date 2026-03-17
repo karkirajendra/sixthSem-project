@@ -1,6 +1,42 @@
 import asyncHandler from 'express-async-handler';
 import { CmsPage, BlogPost } from '../models/CmsPage.js';
 
+const DEFAULT_PAGES = {
+  about: {
+    slug: 'about',
+    title: 'About RoomSathi',
+    content:
+      '<h2>About RoomSathi</h2><p>RoomSathi helps you find rooms, flats, and apartments across Nepal. Browse listings, save your favorites, and contact owners directly.</p><h3>Our mission</h3><p>Make it easy and trustworthy to find a place to live.</p>',
+    type: 'about',
+    status: 'published',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    author: null,
+  },
+  privacy: {
+    slug: 'privacy',
+    title: 'Privacy Policy',
+    content:
+      '<h2>Privacy Policy</h2><p>This is a default privacy policy placeholder. Please update it from the Admin Portal CMS.</p><h3>What we collect</h3><ul><li>Account information</li><li>Usage analytics (optional)</li></ul><h3>How we use it</h3><p>To provide and improve the service.</p>',
+    type: 'privacy',
+    status: 'published',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    author: null,
+  },
+  terms: {
+    slug: 'terms',
+    title: 'Terms & Conditions',
+    content:
+      '<h2>Terms & Conditions</h2><p>This is a default terms placeholder. Please update it from the Admin Portal CMS.</p><h3>Use of service</h3><p>By using this service, you agree to follow the rules and local laws.</p>',
+    type: 'terms',
+    status: 'published',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    author: null,
+  },
+};
+
 // CMS Pages Controllers
 
 // @desc    Get all CMS pages
@@ -34,12 +70,22 @@ export const getCmsPages = asyncHandler(async (req, res) => {
 // @route   GET /api/cms/pages/:slug
 // @access  Public
 export const getCmsPageBySlug = asyncHandler(async (req, res) => {
+  const slug = req.params.slug;
   const page = await CmsPage.findOne({
-    slug: req.params.slug,
+    slug,
     status: 'published',
   }).populate('author', 'name email');
 
   if (!page) {
+    // Serve safe defaults for key pages when DB seed isn't present yet
+    if (DEFAULT_PAGES[slug]) {
+      return res.json({
+        success: true,
+        data: DEFAULT_PAGES[slug],
+        isDefault: true,
+      });
+    }
+
     res.status(404);
     throw new Error('Page not found');
   }

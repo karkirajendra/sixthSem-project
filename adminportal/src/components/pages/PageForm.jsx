@@ -483,7 +483,7 @@ const PageForm = ({ initialData, onSave, onCancel, isDark, isLoading }) => {
       </form>
 
       {/* Custom CSS for dark mode Quill editor */}
-      <style jsx>{`
+      <style>{`
         .quill-dark .ql-toolbar {
           background-color: #4b5563;
           border-color: #6b7280;

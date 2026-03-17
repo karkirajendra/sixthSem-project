@@ -1,7 +1,7 @@
 // src/pages/property/PropertyDetailPage.jsx
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPropertyById, addToWishlist } from '../../api/api';
+import { getPropertyById, addToWishlist, removeFromWishlist, getWishlistState } from '../../api/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaHeart, FaRegHeart, FaMapMarkerAlt, FaBed, FaBath, FaRulerCombined, FaEye, FaUserCheck, FaUserSecret, FaEnvelope, FaPhone, FaUser, FaStore, FaArrowLeft } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -63,7 +63,10 @@ const PropertyDetailPage = () => {
           }
           
           setProperty(propertyData);
-          setInWishlist(false);
+          // Initialize wishlist state based on current user + localStorage backup
+          const userId = currentUser?._id || currentUser?.id;
+          const propertyId = propertyData?._id || propertyData?.id;
+          setInWishlist(userId && propertyId ? getWishlistState(userId, propertyId) : false);
         } else {
           setError(response.message || 'Property not found');
         }
@@ -82,6 +85,15 @@ const PropertyDetailPage = () => {
       hasLoadedRef.current = false;
     };
   }, [id]);
+
+  // Keep wishlist state in sync when auth state changes (e.g. after refresh)
+  useEffect(() => {
+    const userId = currentUser?._id || currentUser?.id;
+    const propertyId = property?._id || property?.id;
+    if (userId && propertyId) {
+      setInWishlist(getWishlistState(userId, propertyId));
+    }
+  }, [currentUser, property]);
 
   // MOVED: Define seller and isAvailable after property is loaded
   const isAvailable = property && !['sold out', 'not available'].includes(property?.status?.toLowerCase());
@@ -102,9 +114,19 @@ const PropertyDetailPage = () => {
 
     try {
       const userId = currentUser.id || currentUser._id;
-      const response = await addToWishlist(userId, property._id || property.id);
+      const propertyId = property._id || property.id;
+
+      if (inWishlist) {
+        const response = await removeFromWishlist(userId, propertyId);
+        if (response.success) {
+          setInWishlist(false);
+        }
+        return;
+      }
+
+      const response = await addToWishlist(userId, propertyId);
       if (response.success) {
-        setInWishlist(!inWishlist);
+        setInWishlist(true);
       }
     } catch (error) {
       console.error('Error updating wishlist:', error);

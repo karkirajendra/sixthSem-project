@@ -18,6 +18,7 @@ import AddListings from './pages/AddProperty';
 import Pages from './pages/Pages';
 import Feedback from './pages/Feedback';
 import Contact from './pages/Contact';
+import Blog from './pages/Blog';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -61,6 +62,7 @@ function App() {
             <Route path="listings" element={<Listings isDark={isDark} />} />
             <Route path="add-listings" element={<AddListings isDark={isDark} />} />
             <Route path="analytics" element={<Analytics isDark={isDark} />} />
+            <Route path="blog" element={<Blog isDark={isDark} />} />
             <Route path="pages/*" element={<Pages isDark={isDark} />} />
             <Route path="feedback" element={<Feedback isDark={isDark} />} />
             <Route path="contact" element={<Contact isDark={isDark} />} />

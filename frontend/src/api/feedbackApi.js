@@ -85,17 +85,16 @@ const feedbackApi = {
   // Map frontend categories to backend type enum values
   getValidFeedbackType: (category) => {
     // Backend validation expects these EXACT values:
-    // ['property_review', 'platform_feedback', 'bug_report', 'suggestion', 'testimonial', 'general']
-    
+    // ['property_review', 'platform_feedback', 'bug_report', 'suggestion', 'testimonial']
     const categoryMapping = {
-      'testimonial': 'testimonial',
-      'bug_report': 'bug_report', 
-      'feature_request': 'suggestion',
-      'general': 'general'
+      testimonial: 'testimonial',
+      bug_report: 'bug_report',
+      feature_request: 'suggestion',
+      general: 'platform_feedback',
     };
     
-    // Return the mapped value or default to 'general'
-    return categoryMapping[category] || 'general';
+    // Return the mapped value or default to platform feedback
+    return categoryMapping[category] || 'platform_feedback';
   },
 
   // Get testimonials for frontend display (public)

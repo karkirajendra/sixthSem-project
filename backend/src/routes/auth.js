@@ -5,6 +5,7 @@ import {
   getUserProfile,
   updateUserProfile,
   logoutUser,
+  changePassword,
   getDashboardStats,
 } from '../controllers/auth.js';
 import { protect } from '../middlewares/auth.js';
@@ -22,6 +23,7 @@ router.get('/profile', protect, getUserProfile);
 router.get('/profile/seller', protect, getUserProfile);
 router.get('/profile/buyer', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
+router.put('/change-password', protect, changePassword);
 router.post('/logout', protect, logoutUser);
 router.get('/dashboard-stats', protect, getDashboardStats);
 
