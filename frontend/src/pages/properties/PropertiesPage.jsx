@@ -38,8 +38,7 @@ const PropertiesPage = () => {
   // Direct fetch test
   window.testDirectFetch = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/properties');
-      console.log('Direct fetch response status:', response.status);
+      const response = await fetch('http://localhost:5000/api/properties')
       const data = await response.json();
       console.log('Direct fetch data:', data);
       return data;
@@ -53,7 +52,7 @@ const PropertiesPage = () => {
   const normalizeProperty = useCallback((property) => {
     // Get formatted image URL using utility function
     const formattedImageUrl = getFormattedPropertyImage(property);
-    
+
     return {
       ...property,
       // Ensure id exists (MongoDB uses _id)
@@ -70,20 +69,17 @@ const PropertiesPage = () => {
     };
   }, []);
 
-  // Helper function to normalize properties array
-const normalizeProperties = useCallback(
-  (properties) => {
-    // Ensure properties is an array before mapping
-    if (!Array.isArray(properties)) {
-      console.warn('normalizeProperties received non-array:', properties);
-      return [];
-    }
-    
-    return properties.map(normalizeProperty);
-  },
-  [normalizeProperty]
-);
-  // Initialize filters from URL params
+  const normalizeProperties = useCallback(
+    (properties) => {
+      if (!Array.isArray(properties)) {
+        console.warn('normalizeProperties received non-array:', properties);
+        return [];
+      }
+
+      return properties.map(normalizeProperty);
+    },
+    [normalizeProperty]
+  );
   const initialFilters = {
     location: searchParams.get('location') || '',
     type: searchParams.get('type') || '',
@@ -92,69 +88,68 @@ const normalizeProperties = useCallback(
     q: searchParams.get('q') || '', // Add search query parameter
   };
 
-// In your handleSuperSearchResults function, update it like this:
-const handleSuperSearchResults = (results, query = '') => {
-  if (results === null) {
-    // When search is cleared, show all properties
-    setFilteredProperties(properties);
-    // Remove superSearch param from URL
-    const params = new URLSearchParams(searchParams);
-    params.delete('superSearch');
-    setSearchParams(params);
-  } else {
-    // Handle both old array format and new API response format
-    let propertiesArray = [];
-    
-    if (Array.isArray(results)) {
-      // Old format - direct array
-      propertiesArray = results;
-    } else if (results && typeof results === 'object' && results.properties) {
-      // New API format with metadata - extract properties array
-      propertiesArray = results.properties || [];
-    } else if (results && typeof results === 'object') {
-      // Fallback - try to extract properties from various possible structures
-      propertiesArray = results.data?.properties || results.properties || [];
-    }
-    
-    // Ensure we have an array
-    if (!Array.isArray(propertiesArray)) {
-      console.warn('Could not extract properties array from results:', results);
-      propertiesArray = [];
-    }
-    
-    const normalizedResults = normalizeProperties(propertiesArray);
-    setFilteredProperties(normalizedResults);
-    
-    // Add superSearch param to URL if query exists
-    if (query) {
+  // In your handleSuperSearchResults function, update it like this:
+  const handleSuperSearchResults = (results, query = '') => {
+    if (results === null) {
+      // When search is cleared, show all properties
+      setFilteredProperties(properties);
+      // Remove superSearch param from URL
       const params = new URLSearchParams(searchParams);
-      params.set('superSearch', query);
+      params.delete('superSearch');
       setSearchParams(params);
+    } else {
+      // Handle both old array format and new API response format
+      let propertiesArray = [];
+
+      if (Array.isArray(results)) {
+        // Old format - direct array
+        propertiesArray = results;
+      } else if (results && typeof results === 'object' && results.properties) {
+        // New API format with metadata - extract properties array
+        propertiesArray = results.properties || [];
+      } else if (results && typeof results === 'object') {
+        // Fallback - try to extract properties from various possible structures
+        propertiesArray = results.data?.properties || results.properties || [];
+      }
+
+      // Ensure we have an array
+      if (!Array.isArray(propertiesArray)) {
+        console.warn('Could not extract properties array from results:', results);
+        propertiesArray = [];
+      }
+
+      const normalizedResults = normalizeProperties(propertiesArray);
+      setFilteredProperties(normalizedResults);
+
+      // Add superSearch param to URL if query exists
+      if (query) {
+        const params = new URLSearchParams(searchParams);
+        params.set('superSearch', query);
+        setSearchParams(params);
+      }
     }
-  }
-};
+  };
 
-// Also, add this helper to check for super search on mount
-useEffect(() => {
-  const superSearchQuery = searchParams.get('superSearch');
-  if (superSearchQuery) {
-    handleSuperSearchFromURL(superSearchQuery);
-  }
-}, [searchParams]);
+  // Also, add this helper to check for super search on mount
+  useEffect(() => {
+    const superSearchQuery = searchParams.get('superSearch');
+    if (superSearchQuery) {
+      handleSuperSearchFromURL(superSearchQuery);
+    }
+  }, [searchParams]);
 
-const handleSuperSearchFromURL = async (query) => {
-  setLoading(true);
-  try {
-    const results = await performSuperSearch(query);
-    const normalizedResults = normalizeProperties(results.properties || []);
-    setFilteredProperties(normalizedResults);
-  } catch (error) {
-    console.error('Super search from URL failed:', error);
-    setFilteredProperties([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleSuperSearchFromURL = async (query) => {
+    setLoading(true);
+    try {
+      const results = await performSuperSearch(query);
+      const normalizedResults = normalizeProperties(results.properties || []);
+      setFilteredProperties(normalizedResults);
+    } catch (error) {
+      setFilteredProperties([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [filters, setFilters] = useState(initialFilters);
 
@@ -185,15 +180,12 @@ const handleSuperSearchFromURL = async (query) => {
         let response;
         if (filters.q) {
           // Use search API when there's a search query
-          console.log('Using search API with query:', filters.q);
           response = await searchProperties(filters);
         } else {
           // Use regular properties API for filtering
-          console.log('Using regular properties API');
           response = await getAllProperties(filters);
         }
 
-        console.log('API Response:', response); // Debug log
 
         // Handle the API response structure
         const rawPropertiesData =
@@ -202,36 +194,32 @@ const handleSuperSearchFromURL = async (query) => {
         const total = response?.total || propertiesData.length;
         const pages = response?.totalPages || 1;
         const page = response?.currentPage || 1;
-
-        console.log('Raw Properties Data:', rawPropertiesData); // Debug log
-        console.log('Normalized Properties Data:', propertiesData); // Debug log
-
         setProperties(propertiesData);
         setTotalCount(total);
         setTotalPages(pages);
         setCurrentPage(page);
-if (superSearchQuery) {
-  const results = await performSuperSearch(superSearchQuery);
-  
-  // Handle the response structure correctly
-  let propertiesArray = [];
-  if (results && typeof results === 'object') {
-    if (Array.isArray(results)) {
-      // Old format - direct array
-      propertiesArray = results;
-    } else if (results.properties && Array.isArray(results.properties)) {
-      // New API format - extract properties array
-      propertiesArray = results.properties;
-    }
-  }
-  
-  const normalizedResults = normalizeProperties(propertiesArray);
-  console.log('SuperSearch Results:', normalizedResults);
-  setFilteredProperties(normalizedResults);
-} else {
-  console.log('Setting filtered properties to:', propertiesData);
-  setFilteredProperties(propertiesData);
-}
+        if (superSearchQuery) {
+          const results = await performSuperSearch(superSearchQuery);
+
+          // Handle the response structure correctly
+          let propertiesArray = [];
+          if (results && typeof results === 'object') {
+            if (Array.isArray(results)) {
+              // Old format - direct array
+              propertiesArray = results;
+            } else if (results.properties && Array.isArray(results.properties)) {
+              // New API format - extract properties array
+              propertiesArray = results.properties;
+            }
+          }
+
+          const normalizedResults = normalizeProperties(propertiesArray);
+          console.log('SuperSearch Results:', normalizedResults);
+          setFilteredProperties(normalizedResults);
+        } else {
+          console.log('Setting filtered properties to:', propertiesData);
+          setFilteredProperties(propertiesData);
+        }
 
         // Update search criteria for recommendations
         if (

@@ -95,9 +95,6 @@ const PropertyDetailPage = () => {
   }) : null;
 
   const handleWishlistToggle = async () => {
-    console.log('handleWishlistToggle - isLoggedIn:', isLoggedIn);
-    console.log('handleWishlistToggle - currentUser:', currentUser);
-    
     if (!isLoggedIn || !currentUser || (!currentUser.id && !currentUser._id)) {
       setShowLoginModal(true);
       return;
@@ -115,29 +112,21 @@ const PropertyDetailPage = () => {
   };
 
   const handleChatClick = () => {
-    console.log('handleChatClick - isLoggedIn:', isLoggedIn);
-    console.log('handleChatClick - currentUser:', currentUser);
-    console.log('handleChatClick - currentUser?.id:', currentUser?.id);
-    
     if (!isLoggedIn) {
-      console.log('Not logged in - showing modal');
       setShowLoginModal(true);
       return;
     }
     
     if (!currentUser) {
-      console.log('No currentUser - showing modal');
       setShowLoginModal(true);
       return;
     }
     
     if (!currentUser.id && !currentUser._id) {
-      console.log('No user ID - showing modal');
       setShowLoginModal(true);
       return;
     }
     
-    console.log('All checks passed - opening chat modal');
     setShowChatModal(true);
   };
 
@@ -220,9 +209,6 @@ const PropertyDetailPage = () => {
       </div>
     );
   }
-
-  // Debug log for seller
-  console.log('Seller data:', seller);
 
   return (
     <div className="pt-20 pb-12 bg-gray-50 min-h-screen">

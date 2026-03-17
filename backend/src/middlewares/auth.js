@@ -48,19 +48,23 @@ export const protect = asyncHandler(async (req, res, next) => {
 // Role authorization
 export const roleAuth = (...roles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      res.status(401);
-      throw new Error('Not authorized');
-    }
+    try {
+      if (!req.user) {
+        res.status(401);
+        throw new Error('Not authorized');
+      }
 
-    if (!roles.includes(req.user.role)) {
-      res.status(403);
-      throw new Error(
-        `User role ${req.user.role} is not authorized to access this route`
-      );
-    }
+      if (!roles.includes(req.user.role)) {
+        res.status(403);
+        throw new Error(
+          `User role ${req.user.role} is not authorized to access this route`
+        );
+      }
 
-    next();
+      next();
+    } catch (error) {
+      next(error);
+    }
   };
 };
 

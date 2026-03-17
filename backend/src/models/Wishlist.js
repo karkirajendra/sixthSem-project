@@ -17,7 +17,6 @@ const wishlistSchema = new mongoose.Schema({
   },
 });
 
-// Ensure a user can't add the same property to wishlist multiple times
 wishlistSchema.index({ user: 1, property: 1 }, { unique: true });
 
 export default mongoose.model('Wishlist', wishlistSchema);

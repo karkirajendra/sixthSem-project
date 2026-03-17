@@ -345,9 +345,8 @@ export const getAllProperties = async (filters = {}) => {
     if (filters.page) queryParams.append('page', filters.page);
     if (filters.limit) queryParams.append('limit', filters.limit);
 
-    const url = `${API_URL}/api/properties${
-      queryParams.toString() ? `?${queryParams.toString()}` : ''
-    }`;
+    const url = `${API_URL}/api/properties${queryParams.toString() ? `?${queryParams.toString()}` : ''
+      }`;
 
     console.log('Fetching from URL:', url); // Debug log
 
@@ -436,7 +435,7 @@ export const getPropertyById = async (id) => {
 export const createProperty = async (propertyData) => {
   try {
     console.log('Sending property data to API:', propertyData); // Debug log
-    
+
     const response = await fetch(`${API_URL}/api/properties`, {
       method: 'POST',
       headers: createHeaders(true),
@@ -452,13 +451,13 @@ export const createProperty = async (propertyData) => {
 
     const data = await response.json();
     console.log('API response:', data); // Debug log
-    
+
     return { success: true, property: data.data };
   } catch (error) {
     console.error('Error creating property:', error);
-    return { 
-      success: false, 
-      message: error.message || 'Failed to create property' 
+    return {
+      success: false,
+      message: error.message || 'Failed to create property'
     };
   }
 };
@@ -505,10 +504,10 @@ const updateLocalStorageWishlist = (userId, propertyId, action) => {
   try {
     const storageKey = `wishlist_${userId}`;
     const currentWishlist = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    
+
     let updatedWishlist;
     const normalizedId = normalizeId(propertyId);
-    
+
     if (action === 'add') {
       if (!currentWishlist.includes(normalizedId)) {
         updatedWishlist = [...currentWishlist, normalizedId];
@@ -541,25 +540,24 @@ export const getWishlistState = (userId, propertyId) => {
 export const addToWishlist = async (userId, propertyId) => {
   try {
     // Try API first
-    const response = await fetch(`${API_URL}/api/wishlist`, {
+    const response = await fetch(`${API_URL}/api/wishlist/${normalizeId(propertyId)}`, {
       method: 'POST',
       headers: createHeaders(true),
-      body: JSON.stringify({ propertyId: normalizeId(propertyId) }),
     });
 
     if (response.ok) {
       const data = await response.json();
-      
+
       // Update localStorage as backup
       updateLocalStorageWishlist(userId, propertyId, 'add');
-      
+
       return { success: true, message: data.message || 'Added to wishlist' };
     }
-    
+
     throw new Error('API unavailable');
   } catch (error) {
     console.warn('Using localStorage fallback for addToWishlist');
-    
+
     // Fallback to localStorage
     try {
       updateLocalStorageWishlist(userId, propertyId, 'add');
@@ -581,17 +579,17 @@ export const removeFromWishlist = async (userId, propertyId) => {
 
     if (response.ok) {
       const data = await response.json();
-      
+
       // Update localStorage as backup
       updateLocalStorageWishlist(userId, propertyId, 'remove');
-      
+
       return { success: true, message: data.message || 'Removed from wishlist' };
     }
-    
+
     throw new Error('API unavailable');
   } catch (error) {
     console.warn('Using localStorage fallback for removeFromWishlist');
-    
+
     // Fallback to localStorage
     try {
       updateLocalStorageWishlist(userId, propertyId, 'remove');
@@ -610,20 +608,19 @@ export const getWishlistByUserId = async (userId) => {
 
   try {
     // Try API first
-    const response = await fetch(`${API_URL}/api/wishlist/user/${userId}`, {
+    const response = await fetch(`${API_URL}/api/wishlist`, {
       headers: createHeaders(true),
     });
 
     if (response.ok) {
       const data = await response.json();
-      return data.wishlistItems || data.data || [];
+      const wishlistItems = data.data || [];
+      return wishlistItems.map(item => item.property || item);
     }
-    
+
     throw new Error('API unavailable');
   } catch (error) {
     console.warn('Using localStorage fallback for getWishlistByUserId');
-    
-    // Fallback to localStorage
     try {
       const storageKey = `wishlist_${userId}`;
       const wishlist = JSON.parse(localStorage.getItem(storageKey) || '[]');
@@ -730,52 +727,24 @@ export const getPropertiesBySellerId = async (sellerId) => {
   return PROPERTIES.filter((property) => property.sellerId === sellerId);
 };
 
+export const getDashboardStats = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/auth/dashboard-stats`, {
+      headers: createHeaders(true),
+    });
+
+    const data = await handleApiResponse(response);
+    return data.data; // Return the exact stats object based on role
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return null;
+  }
+};
+
 export const getSellerDashboardStats = async (sellerId) => {
-  await delay(400);
-
-  const sellerProperties = PROPERTIES.filter(
-    (property) => property.sellerId === sellerId
-  );
-
-  const totalListings = sellerProperties.length;
-  const totalViews = sellerProperties.reduce(
-    (sum, property) => sum + (property.views?.total || 0),
-    0
-  );
-  const loggedInViews = sellerProperties.reduce(
-    (sum, property) => sum + (property.views?.loggedIn || 0),
-    0
-  );
-  const anonymousViews = Math.max(totalViews - loggedInViews, 0);
-
-  const totalInquiries = Math.max(
-    Math.round(totalListings * 1.5) + Math.floor(Math.random() * 5),
-    0
-  );
-
-  const viewsChartData =
-    totalListings === 0
-      ? Array(7).fill(0)
-      : Array.from({ length: 7 }, (_, index) => {
-          const property =
-            sellerProperties[index % sellerProperties.length] || {};
-          const averageViews = property.views?.total
-            ? property.views.total / 7
-            : 0;
-          return Math.max(
-            0,
-            Math.round(averageViews) + Math.floor(Math.random() * 10)
-          );
-        });
-
-  return {
-    totalListings,
-    totalViews,
-    totalInquiries,
-    loggedInViews,
-    anonymousViews,
-    viewsChartData,
-  };
+  // We'll use the generic getDashboardStats since the backend uses the authenticated user's role and ID.
+  // This maintains backward compatibility if any old components still call this directly.
+  return await getDashboardStats();
 };
 
 // Get my properties (for authenticated sellers)
@@ -789,8 +758,7 @@ export const getMyProperties = async (filters = {}) => {
     });
 
     const response = await fetch(
-      `${API_URL}/api/properties/my/properties${
-        queryParams.toString() ? '?' + queryParams.toString() : ''
+      `${API_URL}/api/properties/my/properties${queryParams.toString() ? '?' + queryParams.toString() : ''
       }`,
       {
         method: 'GET',
@@ -885,9 +853,8 @@ export const searchProperties = async (searchParams) => {
     if (searchParams.page) queryParams.append('page', searchParams.page);
     if (searchParams.limit) queryParams.append('limit', searchParams.limit);
 
-    const url = `${API_URL}/api/properties/search${
-      queryParams.toString() ? `?${queryParams.toString()}` : ''
-    }`;
+    const url = `${API_URL}/api/properties/search${queryParams.toString() ? `?${queryParams.toString()}` : ''
+      }`;
 
     const response = await fetch(url, {
       headers: createHeaders(false),

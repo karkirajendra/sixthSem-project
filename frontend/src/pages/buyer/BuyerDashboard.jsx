@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaHeart, FaEnvelope, FaHome, FaUser, FaBookmark } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDashboardStats } from '../../api/api';
 import StatCard from '../../components/StatCard';
 
 const BuyerDashboard = () => {
@@ -16,15 +17,16 @@ const BuyerDashboard = () => {
     // Simulate API call
     const loadStats = async () => {
       try {
-        // In a real app, we would fetch these from the API
-        setTimeout(() => {
+        const data = await getDashboardStats();
+        if (data) {
           setStats({
-            wishlistCount: 5,
-            inquiriesCount: 3,
-            savedSearches: 4,
+            wishlistCount: data.wishlistCount || 0,
+            inquiriesCount: data.inquiriesCount || 0, // Using 0 because backend might not have inquiriesCount yet
+            savedSearches: data.savedLocations?.length || 0,
+            recentWishlist: data.recentWishlist || [],
           });
-          setLoading(false);
-        }, 1000);
+        }
+        setLoading(false);
       } catch (error) {
         console.error('Error loading buyer stats:', error);
         setLoading(false);

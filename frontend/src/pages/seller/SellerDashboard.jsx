@@ -18,8 +18,10 @@ const SellerDashboard = () => {
     const loadStats = async () => {
       try {
         // In a real app, we would pass the current user ID
-        const data = await getSellerDashboardStats(currentUser?.id || 2);
-        setStats(data);
+        const data = await getSellerDashboardStats(currentUser?.id || currentUser?._id);
+        if (data) {
+          setStats(data);
+        }
       } catch (error) {
         console.error('Error loading seller stats:', error);
       } finally {
@@ -100,9 +102,9 @@ const SellerDashboard = () => {
           />
           
           <StatCard 
-            title="Total Inquiries" 
-            value={stats?.totalInquiries || 0} 
-            icon={<FaEnvelope className="text-xl" />} 
+            title="Avg List Price" 
+            value={`Rs. ${stats?.averageListingPrice?.toLocaleString() || 0}`} 
+            icon={<FaRegChartBar className="text-xl" />} 
             color="purple"
           />
         </div>

@@ -22,25 +22,14 @@ const BuyerWishlist = () => {
       }
 
       try {
-        // Get wishlist IDs from API or localStorage
-        const wishlistIds = await getWishlistByUserId(currentUser.id);
-        
-        if (wishlistIds.length === 0) {
+        const wishlistProperties = await getWishlistByUserId(currentUser.id);
+
+        if (wishlistProperties.length === 0) {
           setWishlist([]);
           setLoading(false);
           return;
         }
 
-        // Get all properties
-        const allPropertiesResponse = await getAllProperties();
-        const allProperties = allPropertiesResponse.properties || [];
-        
-        // Filter properties to only include those in the wishlist
-        // Use normalized IDs for comparison
-        const wishlistProperties = allProperties.filter(property => 
-          wishlistIds.includes(normalizeId(property._id || property.id))
-        );
-        
         setWishlist(wishlistProperties);
       } catch (error) {
         console.error('Error loading wishlist:', error);
@@ -64,7 +53,7 @@ const BuyerWishlist = () => {
       const response = await removeFromWishlist(currentUser.id, propertyId);
       if (response.success) {
         // Update the local state by filtering out the removed property
-        setWishlist(wishlist.filter(property => 
+        setWishlist(wishlist.filter(property =>
           (property._id || property.id) !== propertyId
         ));
         toast.success('Removed from wishlist');
@@ -97,7 +86,7 @@ const BuyerWishlist = () => {
         <h1 className="text-2xl font-bold text-gray-800">My Wishlist</h1>
         <p className="text-gray-600">Properties you've saved for later</p>
       </div>
-      
+
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[1, 2].map((i) => (
@@ -124,19 +113,19 @@ const BuyerWishlist = () => {
             return (
               <div key={propertyId} className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
                 <div className="relative h-48">
-                  <img 
-                    src={property.images && property.images.length > 0 
-                      ? property.images[0] 
+                  <img
+                    src={property.images && property.images.length > 0
+                      ? property.images[0]
                       : property.imageUrl || '/default-property.jpg'
-                    } 
-                    alt={property.title} 
+                    }
+                    alt={property.title}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-0 left-0 bg-primary-600 text-white px-3 py-1 rounded-br-lg">
                     <span className="capitalize">{property.type}</span>
                   </div>
                 </div>
-                
+
                 <div className="p-4 flex-grow">
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">{property.title}</h3>
                   <p className="text-gray-600 mb-3 flex items-center">
@@ -148,10 +137,10 @@ const BuyerWishlist = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
-                  <Link 
-                    to={`/property/${propertyId}`} 
+                  <Link
+                    to={`/property/${propertyId}`}
                     className="text-primary-600 hover:text-primary-800 font-medium flex items-center"
                   >
                     <span>View Property</span>
