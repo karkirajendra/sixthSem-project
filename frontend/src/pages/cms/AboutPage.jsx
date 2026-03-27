@@ -105,11 +105,11 @@ const AboutPage = () => {
                   <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     {teamMembers.map((member, index) => (
                       <div key={index} className="overflow-hidden transition-all duration-300 bg-white border-2 border-gray-200 shadow-lg rounded-xl hover:border-blue-400 hover:shadow-2xl group">
-                        <div className="relative h-48 overflow-hidden border-b-2 border-gray-200 bg-gradient-to-br from-gray-200 to-gray-300">
+                        <div className="relative h-56 sm:h-64 overflow-hidden border-b-2 border-gray-200 bg-gradient-to-br from-gray-100 to-gray-200">
                           <img 
                             src={member.image} 
                             alt={member.name} 
-                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                            className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${member.imagePosition || 'object-contain pt-4'} `}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                         </div>

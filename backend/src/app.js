@@ -20,6 +20,7 @@ import reportRoutes from './routes/reportRoutes.js';
 import imageRoutes from './routes/imageRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import sellerChatRoutes from './routes/sellerChatRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 // Import middlewares
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
@@ -101,6 +102,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/seller/chat', sellerChatRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling middlewares
 app.use(notFound);

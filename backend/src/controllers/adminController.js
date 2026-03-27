@@ -628,7 +628,7 @@ export const getRecentListings = asyncHandler(async (req, res) => {
   const { limit = 4 } = req.query;
 
   const recentListings = await Property.find()
-    .select('title type location price status createdAt')
+    .select('title type location price status createdAt images views')
     .populate('sellerId', 'name')
     .sort('-createdAt')
     .limit(parseInt(limit));

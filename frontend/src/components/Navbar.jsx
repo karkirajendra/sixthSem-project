@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FaUser, FaHome, FaBars, FaTimes, FaSignOutAlt, FaHeart, FaList, FaPlus } from 'react-icons/fa';
 
@@ -30,6 +30,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -57,9 +58,10 @@ const Navbar = () => {
     setIsProfileOpen(false);
   }, [location]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setIsProfileOpen(false);
+    navigate('/login');
   };
 
   const isActive = (path) => {

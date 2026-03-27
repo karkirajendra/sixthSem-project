@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FiPlus, FiTrash2, FiEdit2, FiEye } from 'react-icons/fi';
-import { adminApi } from '../utils/adminApi';
+import { FiPlus, FiTrash2, FiEdit2, FiEye, FiUpload } from 'react-icons/fi';
+import { adminApi, uploadSingleImage } from '../utils/adminApi';
 import Modal from '../components/shared/Modal';
 import toast from 'react-hot-toast';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const slugify = (s) =>
   String(s || '')
@@ -17,6 +19,7 @@ const Blog = () => {
   const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [filter, setFilter] = useState('all');
   const [form, setForm] = useState({
     title: '',
@@ -51,6 +54,7 @@ const Blog = () => {
 
   const openCreate = () => {
     setEditing(null);
+    setUploadingImage(false);
     setForm({
       title: '',
       slug: '',
@@ -67,6 +71,7 @@ const Blog = () => {
 
   const openEdit = (post) => {
     setEditing(post);
+    setUploadingImage(false);
     setForm({
       title: post.title || '',
       slug: post.slug || '',
@@ -100,11 +105,31 @@ const Blog = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const res = await uploadSingleImage(file);
+      if (res.success && res.url) {
+        setForm(prev => ({ ...prev, featuredImage: res.url }));
+        toast.success('Image uploaded successfully');
+      } else {
+        toast.error(res.error || 'Failed to upload image');
+      }
+    } catch (error) {
+      toast.error('An error occurred during upload');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     const payload = {
       title: form.title.trim(),
-      slug: (form.slug || slugify(form.title)).trim(),
+      slug: slugify(form.slug || form.title),
       excerpt: form.excerpt.trim(),
       content: form.content,
       category: form.category.trim() || 'General',
@@ -323,14 +348,34 @@ const Blog = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Featured image (URL)</label>
-            <input
-              name="featuredImage"
-              value={form.featuredImage}
-              onChange={handleChange}
-              className="form-input w-full"
-              placeholder="https://..."
-            />
+            <label className="block text-sm font-medium mb-1">Featured image URL</label>
+            <div className="flex gap-2">
+              <input
+                name="featuredImage"
+                value={form.featuredImage}
+                onChange={handleChange}
+                className="form-input flex-1"
+                placeholder="https://..."
+              />
+              <label className={`cursor-pointer inline-flex items-center px-4 py-2 ${uploadingImage ? 'bg-gray-200' : 'bg-gray-100 hover:bg-gray-200'} border border-gray-300 rounded-lg transition-colors`}>
+                <FiUpload className={`mr-2 ${uploadingImage ? 'animate-bounce' : ''}`} />
+                {uploadingImage ? 'Uploading...' : 'Upload'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={uploadingImage}
+                />
+              </label>
+            </div>
+            {form.featuredImage && (
+              <div className="mt-2 text-xs text-gray-500">
+                <a href={form.featuredImage} target="_blank" rel="noreferrer" className="text-primary-600 hover:underline">
+                  Preview External URL
+                </a>
+              </div>
+            )}
           </div>
 
           <div>
@@ -347,14 +392,14 @@ const Blog = () => {
 
           <div>
             <label className="block text-sm font-medium mb-1">Content</label>
-            <textarea
-              name="content"
-              value={form.content}
-              onChange={handleChange}
-              className="form-textarea w-full"
-              rows={10}
-              required
-            />
+            <div className="h-64 mb-12">
+              <ReactQuill
+                theme="snow"
+                value={form.content}
+                onChange={(value) => setForm(prev => ({ ...prev, content: value }))}
+                className="h-full"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

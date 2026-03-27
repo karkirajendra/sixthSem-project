@@ -3,6 +3,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getBlogPosts, getBlogCategories, getBlogTags } from '../../api/cmsApi';
 import { format } from 'date-fns';
+import { API_URL } from '../../config';
+
+const getImageUrl = (url) => {
+  if (!url) return 'https://placehold.co/800x600?text=No+Image';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 const BlogPage = () => {
   const [posts, setPosts] = useState([]);
@@ -168,11 +175,11 @@ const BlogPage = () => {
                 {filteredPosts.map(post => (
                   <article key={post._id || post.id} className="bg-white rounded-2xl shadow-xl border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 overflow-hidden hover:shadow-2xl group">
                     {post.featuredImage && (
-                      <div className="h-64 sm:h-80 bg-gray-200 overflow-hidden relative">
+                      <div className="h-64 sm:h-80 bg-gray-100 overflow-hidden relative flex items-center justify-center p-2">
                         <img 
-                          src={post.featuredImage} 
+                          src={getImageUrl(post.featuredImage)} 
                           alt={post.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                       </div>

@@ -5,6 +5,13 @@ import { getBlogPost } from '../../api/cmsApi';
 import { format } from 'date-fns';
 import DOMPurify from 'dompurify';
 import { FaCalendar, FaFolder, FaTags, FaArrowLeft, FaUser, FaClock } from 'react-icons/fa';
+import { API_URL } from '../../config';
+
+const getImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 const BlogPostPage = () => {
   const { slug } = useParams();
@@ -127,9 +134,9 @@ const BlogPostPage = () => {
                 {post.featuredImage && (
                   <div className="mb-8">
                     <img 
-                      src={post.featuredImage} 
+                      src={getImageUrl(post.featuredImage)} 
                       alt={post.title} 
-                      className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-2xl shadow-xl border-2 border-gray-200"
+                      className="w-full h-auto max-h-[600px] object-contain bg-gray-50 rounded-2xl shadow-xl border-2 border-gray-200 p-2"
                     />
                   </div>
                 )}

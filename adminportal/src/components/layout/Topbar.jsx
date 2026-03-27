@@ -9,9 +9,10 @@ import {
   FiMoreVertical,
 } from 'react-icons/fi';
 import { useAppContext } from '../../context/AppContext';
+import { notificationApi } from '../../utils/notificationApi';
 
 const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
-  const { adminProfile, currentUser, refreshAdminProfile } = useAppContext();
+  const { adminProfile, currentUser, refreshAdminProfile, logout } = useAppContext();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
@@ -29,32 +30,37 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
   const displayEmail = profileData.email || 'admin@roomsathi.com';
   const avatarLetter = displayName.charAt(0).toUpperCase();
 
-  const notifications = [
-    {
-      id: 1,
-      message: 'New user registration',
-      time: '10 minutes ago',
-      type: 'user',
-      unread: true,
-    },
-    {
-      id: 2,
-      message: 'New property listing submitted',
-      time: '1 hour ago',
-      type: 'property',
-      unread: true,
-    },
-    {
-      id: 3,
-      message: 'Report received for Modern 2BHK Apartment',
-      time: '2 hours ago',
-      type: 'report',
-      unread: false,
-    },
-  ];
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadNotifications = async () => {
+    const res = await notificationApi.getNotifications();
+    if (res.success) {
+      setNotifications(res.data || []);
+      setUnreadCount((res.data || []).filter(n => !n.isRead).length);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      loadNotifications();
+    }
+  }, [currentUser]);
+
+  const handleMarkAsRead = async (id, isRead) => {
+    if (isRead) return;
+    await notificationApi.markAsRead(id);
+    loadNotifications();
+  };
+
+  const handleMarkAllAsRead = async () => {
+    await notificationApi.markAllAsRead();
+    loadNotifications();
+  };
 
   const handleLogout = () => {
     console.log('Logout clicked');
+    logout();
     navigate('/login');
   };
 
@@ -129,9 +135,11 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
             aria-label="Notifications"
           >
             <FiBell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center text-xs text-white font-bold animate-pulse">
-              3
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center text-xs text-white font-bold animate-pulse">
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           {showNotifications && (
@@ -159,59 +167,66 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
                   >
                     Notifications
                   </h3>
-                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full dark:bg-blue-900/20 dark:text-blue-200">
-                    2 new
-                  </span>
+                  {unreadCount > 0 && (
+                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full dark:bg-blue-900/20 dark:text-blue-200">
+                      {unreadCount} new
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="max-h-80 overflow-y-auto">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`
-                      px-6 py-4 border-b transition-colors duration-150
-                      ${
-                        isDark
-                          ? 'hover:bg-gray-700/50 border-gray-700'
-                          : 'hover:bg-gray-50 border-gray-100'
-                      }
-                      ${
-                        notification.unread
-                          ? 'bg-blue-50/50 dark:bg-blue-900/20'
-                          : ''
-                      }
-                    `}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div
-                        className={`
-                        w-2 h-2 rounded-full mt-2 flex-shrink-0
+                {notifications.length === 0 ? (
+                  <div className="px-6 py-8 text-center text-gray-500">No notifications</div>
+                ) : (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification._id}
+                      onClick={() => handleMarkAsRead(notification._id, notification.isRead)}
+                      className={`
+                        px-6 py-4 border-b transition-colors duration-150 cursor-pointer
                         ${
-                          notification.unread
-                            ? 'bg-blue-500'
-                            : 'bg-gray-300 dark:bg-gray-600'
+                          isDark
+                            ? 'hover:bg-gray-700/50 border-gray-700'
+                            : 'hover:bg-gray-50 border-gray-100'
+                        }
+                        ${
+                          !notification.isRead
+                            ? 'bg-blue-50/50 dark:bg-blue-900/20'
+                            : ''
                         }
                       `}
-                      ></div>
-                      <div className="flex-1">
-                        <p
-                          className={`text-sm font-medium ${
-                            isDark ? 'text-white' : 'text-gray-900'
-                          }`}
-                        >
-                          {notification.message}
-                        </p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            isDark ? 'text-gray-400' : 'text-gray-500'
-                          }`}
-                        >
-                          {notification.time}
-                        </p>
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div
+                          className={`
+                          w-2 h-2 rounded-full mt-2 flex-shrink-0
+                          ${
+                            !notification.isRead
+                              ? 'bg-blue-500'
+                              : 'bg-gray-300 dark:bg-gray-600'
+                          }
+                        `}
+                        ></div>
+                        <div className="flex-1">
+                          <p
+                            className={`text-sm font-medium ${
+                              isDark ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {notification.message}
+                          </p>
+                          <p
+                            className={`text-xs mt-1 ${
+                              isDark ? 'text-gray-400' : 'text-gray-500'
+                            }`}
+                          >
+                            {new Date(notification.createdAt).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               <div
                 className={`px-6 py-4 border-t ${
@@ -219,13 +234,14 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
                 }`}
               >
                 <button
+                  onClick={handleMarkAllAsRead}
                   className={`w-full text-sm font-medium transition-colors ${
                     isDark
                       ? 'text-blue-400 hover:text-blue-300'
                       : 'text-blue-600 hover:text-blue-800'
                   }`}
                 >
-                  View all notifications
+                  Mark all as read
                 </button>
               </div>
             </div>

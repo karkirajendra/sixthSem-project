@@ -23,14 +23,28 @@ const RecentListings = ({
 
   const FALLBACK = 'https://placehold.co/56x56?text=No+Img';
 
-  // Normalize image URL: rewrite old absolute localhost URLs to relative /uploads/...
-  // so Vite's proxy forwards them correctly
-  const getImageSrc = (url) => {
-    if (!url) return FALLBACK;
-    if (url.includes('localhost:5000/uploads/')) {
-      return url.replace(/^https?:\/\/localhost:5000/, '');
+  const getImageUrl = (listing) => {
+    const rawImageUrl = listing.images?.[0] || 
+      listing.image || 
+      listing.imageUrl || 
+      (Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : null);
+
+    if (!rawImageUrl) return FALLBACK;
+    
+    if (typeof rawImageUrl === 'string') {
+      if (rawImageUrl.includes('localhost:5000/uploads/')) {
+        return rawImageUrl.replace(/^https?:\/\/localhost:5000/, '');
+      }
+      if (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')) {
+        return rawImageUrl;
+      }
+      if (rawImageUrl.startsWith('/uploads/')) return rawImageUrl;
+      if (rawImageUrl.startsWith('uploads/')) return `/${rawImageUrl}`;
+      if (rawImageUrl.startsWith('/')) return rawImageUrl;
+      return `/uploads/${rawImageUrl}`;
     }
-    return url;
+    
+    return FALLBACK;
   };
 
   const displayedListings = listings.slice(0, maxItems);
@@ -59,7 +73,7 @@ const RecentListings = ({
           >
             <div className="relative flex-shrink-0">
               <img
-                src={getImageSrc(listing.image)}
+                src={getImageUrl(listing)}
                 alt={listing.title}
                 className="w-14 h-14 rounded-md object-cover"
                 onError={(e) => { if (e.target.src !== FALLBACK) e.target.src = FALLBACK; }}
