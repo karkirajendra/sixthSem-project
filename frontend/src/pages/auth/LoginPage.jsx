@@ -130,7 +130,7 @@ const LoginPage = () => {
                     Password
                   </label>
                   <a
-                    href="#"
+                    href="/forgot-password"
                     className="text-xs text-blue-600 hover:text-blue-500 transition-colors duration-200"
                   >
                     Forgot password?

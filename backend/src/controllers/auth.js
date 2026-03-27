@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import User from '../models/user.js';
 import generateToken from '../utils/generateToken.js';
 import crypto from 'crypto';
+import { sendEmail, emailTemplates } from '../utils/emailService.js';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -336,5 +337,96 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: stats,
+  });
+});
+
+// @desc    Forgot password - send reset email
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400);
+    throw new Error('Please provide an email address');
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    res.status(404);
+    throw new Error('No user found with that email address');
+  }
+
+  // Get reset token (stores hashed version on user doc)
+  const resetToken = user.getResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
+
+  // Build reset URL pointing to the frontend
+  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+  try {
+    const template = emailTemplates.passwordReset(user.name, resetUrl);
+    await sendEmail({
+      email: user.email,
+      subject: template.subject,
+      html: template.html,
+      message: template.text,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset email sent',
+    });
+  } catch (err) {
+    // Log the real error so we can debug it
+    console.error('Email send error:', err);
+
+    // If email fails, clear the token so user can try again
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(500);
+    throw new Error(`Email could not be sent: ${err.message}`);
+  }
+});
+
+// @desc    Reset password using token from email
+// @route   PUT /api/auth/reset-password/:resetToken
+// @access  Public
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+
+  if (!password || password.length < 6) {
+    res.status(400);
+    throw new Error('Password must be at least 6 characters');
+  }
+
+  // Hash the token from the URL to compare with stored hash
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.resetToken)
+    .digest('hex');
+
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error('Invalid or expired reset token');
+  }
+
+  // Set the new password and clear reset fields
+  user.password = password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password has been reset successfully. You can now log in.',
   });
 });

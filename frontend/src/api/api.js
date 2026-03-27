@@ -305,7 +305,7 @@ export const resetPassword = async (token, password) => {
     const response = await fetch(
       `${API_URL}/api/auth/reset-password/${token}`,
       {
-        method: 'POST',
+        method: 'PUT',
         headers: createHeaders(false),
         body: JSON.stringify({ password }),
       }

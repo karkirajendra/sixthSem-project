@@ -10,6 +10,8 @@ import PropertiesPage from "./pages/properties/PropertiesPage";
 import PropertyDetailPage from "./pages/property/PropertyDetailPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import AboutPage from "./pages/cms/AboutPage";
 import BlogPage from "./pages/cms/BlogPage";
 import BlogPostPage from "./pages/cms/BlogPostPage";
@@ -85,6 +87,22 @@ const SellerRoute = ({ children }) => {
   );
 };
 
+const HomeRoute = () => {
+  const { isLoggedIn, currentUser, isBuyer, isSeller } = useAuth();
+
+  if (isLoggedIn) {
+    if (isBuyer) return <Navigate to="/buyer/dashboard" />;
+    if (isSeller) return <Navigate to="/seller/dashboard" />;
+    if (currentUser?.role === 'admin') {
+      const adminPortalUrl = import.meta.env.VITE_APP_ADMIN_PORTAL_URL || 'http://localhost:4100';
+      window.location.href = adminPortalUrl;
+      return null;
+    }
+  }
+
+  return <HomePage />;
+};
+
 function App() {
   return (
     <>
@@ -93,11 +111,13 @@ function App() {
       <ScrollToTop />
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomeRoute />} />
         <Route path="/properties" element={<PropertiesPage />} />
         <Route path="/property/:id" element={<PropertyDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />

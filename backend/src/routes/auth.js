@@ -7,6 +7,8 @@ import {
   logoutUser,
   changePassword,
   getDashboardStats,
+  forgotPassword,
+  resetPassword,
 } from '../controllers/auth.js';
 import { protect } from '../middlewares/auth.js';
 import { validateRegister, validateLogin } from '../middlewares/validation.js';
@@ -16,6 +18,8 @@ const router = express.Router();
 // Public routes
 router.post('/register', validateRegister, registerUser);
 router.post('/login', validateLogin, loginUser);
+router.post('/forgot-password', forgotPassword);
+router.put('/reset-password/:resetToken', resetPassword);
 
 // Private routes
 router.get('/profile', protect, getUserProfile);
@@ -28,3 +32,4 @@ router.post('/logout', protect, logoutUser);
 router.get('/dashboard-stats', protect, getDashboardStats);
 
 export default router;
+
