@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "seed": "node seedDB.js",
     "seed:dev": "cross-env NODE_ENV=development node seedDB.js",
     "build": "npm install"
@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
+    "jest": "^30.3.0",
     "nodemon": "^3.1.10"
   }
 }
