@@ -3,6 +3,7 @@ import {
   getNotifications,
   markAsRead,
   markAllAsRead,
+  clearAllNotifications,
 } from '../controllers/notificationController.js';
 import { protect } from '../middlewares/auth.js';
 
@@ -12,6 +13,7 @@ router.use(protect); // All notification routes require authentication
 
 router.route('/').get(getNotifications);
 router.route('/read-all').put(markAllAsRead);
+router.route('/clear-all').delete(clearAllNotifications);
 router.route('/:id/read').put(markAsRead);
 
 export default router;

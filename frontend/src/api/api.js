@@ -771,6 +771,58 @@ export const getDashboardStats = async () => {
   }
 };
 
+// Notification API functions
+export const getNotifications = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/notifications`, {
+      headers: createHeaders(true),
+    });
+    const data = await handleApiResponse(response);
+    return { success: true, notifications: data.data || [] };
+  } catch (error) {
+    return { success: false, notifications: [], message: error.message };
+  }
+};
+
+export const markNotificationAsRead = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/api/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+    });
+    await handleApiResponse(response);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const markAllNotificationsAsRead = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/notifications/read-all`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+    });
+    await handleApiResponse(response);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const clearAllNotifications = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/notifications/clear-all`, {
+      method: 'DELETE',
+      headers: createHeaders(true),
+    });
+    await handleApiResponse(response);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
 export const getSellerDashboardStats = async (sellerId) => {
   // We'll use the generic getDashboardStats since the backend uses the authenticated user's role and ID.
   // This maintains backward compatibility if any old components still call this directly.

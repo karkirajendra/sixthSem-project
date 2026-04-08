@@ -167,7 +167,11 @@ export const getBlogPosts = asyncHandler(async (req, res) => {
     search,
   } = req.query;
 
-  let query = { status };
+  let query = {};
+  // For admin listing support, allow status=all (or no status) to return everything
+  if (status && status !== 'all') {
+    query.status = status;
+  }
 
   if (category) query.category = category;
   if (tags) query.tags = { $in: tags.split(',') };

@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { FaUser, FaHome, FaBars, FaTimes, FaSignOutAlt, FaHeart, FaList, FaPlus } from 'react-icons/fa';
+import { FaUser, FaHome, FaBars, FaTimes, FaSignOutAlt, FaHeart, FaList, FaPlus, FaBell } from 'react-icons/fa';
+import {
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  clearAllNotifications,
+} from '../api/api';
 
 // Define the waving hand animation styles
 const waveAnimation = `
@@ -29,9 +35,12 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
   const profileRef = useRef(null);
+  const notificationsRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,6 +56,12 @@ const Navbar = () => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false);
       }
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target)
+      ) {
+        setIsNotificationsOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -56,7 +71,29 @@ const Navbar = () => {
   useEffect(() => {
     setIsMenuOpen(false);
     setIsProfileOpen(false);
+    setIsNotificationsOpen(false);
   }, [location]);
+
+  const loadNotifications = async () => {
+    if (!isLoggedIn) return;
+    const result = await getNotifications();
+    if (result.success) {
+      setNotifications(result.notifications);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, [isLoggedIn]);
+
+  // Keep notification badge/dropdown fresh without page reload
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
 
   const handleLogout = async () => {
     await logout();
@@ -68,6 +105,8 @@ const Navbar = () => {
     return location.pathname === path || 
            (path !== '/' && location.pathname.startsWith(path));
   };
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   useEffect(() => {
     const style = document.createElement('style');
@@ -158,27 +197,108 @@ const Navbar = () => {
           </div>
       
           {isLoggedIn ? (
-            <div className="relative" ref={profileRef}>
-              <button 
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className={`flex items-center space-x-2 ${
-                  scrolled || location.pathname !== '/' ? 'text-gray-700' : 'text-white'
-                } hover:opacity-80 transition-opacity`}
-              >
-                <span className="flex items-center">
-                  <span className="wave-hand">👋</span>
-                  <span>Hi, {currentUser.name}</span>
-                </span>
-                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                  <FaUser className="text-primary-600" />
-                </div>
-              </button>
+            <div className="flex items-center space-x-3">
+              <div className="relative" ref={notificationsRef}>
+                <button
+                  onClick={() => {
+                    setIsNotificationsOpen(!isNotificationsOpen);
+                    setIsProfileOpen(false);
+                  }}
+                  className={`relative ${
+                    scrolled || location.pathname !== '/' ? 'text-gray-700' : 'text-white'
+                  } hover:opacity-80 transition-opacity`}
+                  aria-label="Notifications"
+                >
+                  <FaBell className="text-lg" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
 
-              <div 
-                className={`absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg py-2 transition-all duration-200 ${
-                  isProfileOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
-                }`}
-              >
+                <div
+                  className={`absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg transition-all duration-200 ${
+                    isNotificationsOpen
+                      ? 'opacity-100 visible translate-y-0'
+                      : 'opacity-0 invisible -translate-y-2'
+                  }`}
+                >
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-900">Notifications</p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={async () => {
+                          await markAllNotificationsAsRead();
+                          loadNotifications();
+                        }}
+                        className="text-xs text-primary-600 hover:text-primary-700"
+                      >
+                        Mark all read
+                      </button>
+                      <button
+                        onClick={async () => {
+                          await clearAllNotifications();
+                          loadNotifications();
+                        }}
+                        className="text-xs text-red-600 hover:text-red-700"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <p className="px-4 py-4 text-sm text-gray-500">No notifications yet</p>
+                    ) : (
+                      notifications.map((notification) => (
+                        <button
+                          key={notification._id}
+                          onClick={async () => {
+                            if (!notification.isRead) {
+                              await markNotificationAsRead(notification._id);
+                              loadNotifications();
+                            }
+                          }}
+                          className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 ${
+                            !notification.isRead ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <p className="text-sm text-gray-800">{notification.message}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(notification.createdAt).toLocaleString()}
+                          </p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(!isProfileOpen);
+                    setIsNotificationsOpen(false);
+                  }}
+                  className={`flex items-center space-x-2 ${
+                    scrolled || location.pathname !== '/' ? 'text-gray-700' : 'text-white'
+                  } hover:opacity-80 transition-opacity`}
+                >
+                  <span className="flex items-center">
+                    <span className="wave-hand">👋</span>
+                    <span>Hi, {currentUser.name}</span>
+                  </span>
+                  <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                    <FaUser className="text-primary-600" />
+                  </div>
+                </button>
+
+                <div
+                  className={`absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg py-2 transition-all duration-200 ${
+                    isProfileOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+                  }`}
+                >
                 <div className="px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center">
                     <span className="wave-hand">👋</span>
@@ -230,6 +350,7 @@ const Navbar = () => {
                 </div>
               </div>
             </div>
+          </div>
           ) : (
             <div className="flex items-center space-x-2">
               <a

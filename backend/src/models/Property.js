@@ -35,6 +35,11 @@ const propertySchema = new mongoose.Schema({
     required: [true, 'Please enter property price'],
     min: [0, 'Price cannot be negative'],
   },
+  contactPhone: {
+    type: String,
+    required: [true, 'Please provide a contact phone number'],
+    trim: true,
+  },
   location: {
     type: String,
     required: [true, 'Please enter property location'],

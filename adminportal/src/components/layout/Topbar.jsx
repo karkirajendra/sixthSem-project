@@ -12,7 +12,13 @@ import { useAppContext } from '../../context/AppContext';
 import { notificationApi } from '../../utils/notificationApi';
 
 const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
-  const { adminProfile, currentUser, refreshAdminProfile, logout } = useAppContext();
+  const appContext = useAppContext() || {};
+  const {
+    adminProfile = null,
+    currentUser = null,
+    refreshAdminProfile = async () => ({ success: false }),
+    logout = () => {},
+  } = appContext;
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
@@ -34,6 +40,7 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const loadNotifications = async () => {
+    if (!localStorage.getItem('token')) return;
     const res = await notificationApi.getNotifications();
     if (res.success) {
       setNotifications(res.data || []);
@@ -42,9 +49,18 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && localStorage.getItem('token')) {
       loadNotifications();
     }
+  }, [currentUser]);
+
+  // Auto-refresh admin notifications so no manual reload is needed
+  useEffect(() => {
+    if (!currentUser || !localStorage.getItem('token')) return;
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [currentUser]);
 
   const handleMarkAsRead = async (id, isRead) => {
@@ -55,6 +71,11 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
 
   const handleMarkAllAsRead = async () => {
     await notificationApi.markAllAsRead();
+    loadNotifications();
+  };
+
+  const handleClearAllNotifications = async () => {
+    await notificationApi.clearAll();
     loadNotifications();
   };
 
@@ -233,16 +254,28 @@ const Topbar = ({ toggleSidebar, isDark, toggleDark, navigate }) => {
                   isDark ? 'border-gray-700' : 'border-gray-200'
                 }`}
               >
-                <button
-                  onClick={handleMarkAllAsRead}
-                  className={`w-full text-sm font-medium transition-colors ${
-                    isDark
-                      ? 'text-blue-400 hover:text-blue-300'
-                      : 'text-blue-600 hover:text-blue-800'
-                  }`}
-                >
-                  Mark all as read
-                </button>
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className={`text-sm font-medium transition-colors ${
+                      isDark
+                        ? 'text-blue-400 hover:text-blue-300'
+                        : 'text-blue-600 hover:text-blue-800'
+                    }`}
+                  >
+                    Mark all as read
+                  </button>
+                  <button
+                    onClick={handleClearAllNotifications}
+                    className={`text-sm font-medium transition-colors ${
+                      isDark
+                        ? 'text-red-400 hover:text-red-300'
+                        : 'text-red-600 hover:text-red-800'
+                    }`}
+                  >
+                    Clear all
+                  </button>
+                </div>
               </div>
             </div>
           )}

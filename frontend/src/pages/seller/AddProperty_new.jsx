@@ -29,8 +29,8 @@ const AddProperty = () => {
     flatType: '', // Required when type is 'flat' or 'apartment'
     location: '',
     area: '', // Changed from 'size' to match backend model
-    bedrooms: 0,
-    bathrooms: 0,
+    bedrooms: '',
+    bathrooms: '',
     images: [], // URLs from uploaded images
     features: {
       electricity: false,
@@ -63,16 +63,14 @@ const AddProperty = () => {
     { value: 'single', label: 'Single Room' },
     { value: 'double', label: 'Double Room' },
     { value: 'single-kitchen', label: 'Single Room with Kitchen' },
-    { value: 'double-kitchen', label: 'Double Room with Kitchen' },
     { value: 'studio', label: 'Studio' },
   ];
 
   const flatTypes = [
-    { value: '1BHK', label: '1 BHK' },
-    { value: '2BHK', label: '2 BHK' },
-    { value: '3BHK', label: '3 BHK' },
-    { value: '4BHK', label: '4 BHK' },
-    { value: 'penthouse', label: 'Penthouse' },
+    { value: '1bhk', label: '1 BHK' },
+    { value: '2bhk', label: '2 BHK' },
+    { value: '3bhk', label: '3 BHK' },
+    { value: '4bhk', label: '4 BHK' },
   ];
 
   const locations = [
@@ -122,6 +120,7 @@ const AddProperty = () => {
 
   const handlePropertyChange = (e) => {
     const { name, value, type } = e.target;
+    const normalizedValue = type === 'number' ? value : value;
 
     if (name.includes('.')) {
       // Handle nested objects like address.street
@@ -130,13 +129,13 @@ const AddProperty = () => {
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: type === 'number' ? Number(value) : value,
+          [child]: normalizedValue,
         },
       }));
     } else {
       setPropertyData((prev) => ({
         ...prev,
-        [name]: type === 'number' ? Number(value) : value,
+        [name]: normalizedValue,
       }));
     }
   };

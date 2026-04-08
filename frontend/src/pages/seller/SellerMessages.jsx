@@ -12,6 +12,7 @@ import { FaPaperPlane, FaUser, FaComments, FaHome, FaUsers, FaStore, FaCrown, Fa
 
 const SellerMessages = () => {
   const { currentUser } = useAuth();
+  const currentUserId = currentUser?._id || currentUser?.id;
   const [chatRooms, setChatRooms] = useState([]);
   const [propertyChats, setPropertyChats] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -44,6 +45,18 @@ const SellerMessages = () => {
       initializeWebSocket(selectedRoom._id);
     }
   }, [selectedRoom]);
+
+  // Poll fallback for room list/message updates when websocket is unavailable
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadChatData();
+      if (selectedRoom?._id) {
+        loadMessages(selectedRoom._id);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [selectedRoom?._id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -78,7 +91,7 @@ const SellerMessages = () => {
             setMessages(prev => [...prev, data.message]);
           }
         } else if (data.type === 'user_typing') {
-          if (data.userId !== currentUser.id) {
+          if (data.userId !== currentUserId) {
             setTypingUser(data.userName || 'Someone');
             setIsTyping(true);
             setTimeout(() => {
@@ -140,7 +153,9 @@ const SellerMessages = () => {
     setNewMessage('');
 
     try {
-      const otherParticipant = selectedRoom.participants.find(p => p._id !== currentUser.id);
+      const otherParticipant = selectedRoom.participants.find(
+        (p) => p._id !== currentUserId
+      );
       const messageData = {
         text: messageText,
         receiverId: otherParticipant._id,
@@ -156,6 +171,7 @@ const SellerMessages = () => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
         setMessages(prev => [...prev, sentMessage]);
       }
+      loadChatData();
     } catch (error) {
       console.error('Error sending message:', error);
       setNewMessage(messageText);
@@ -167,7 +183,7 @@ const SellerMessages = () => {
       wsRef.current.send(JSON.stringify({
         type: 'typing',
         roomId: selectedRoom._id,
-        userId: currentUser.id,
+        userId: currentUserId,
         userName: currentUser.name
       }));
     }
@@ -181,7 +197,7 @@ const SellerMessages = () => {
 
   // Helper function to determine message styling and info
   const getMessageInfo = (msg) => {
-    const isCurrentUser = msg.senderId._id === currentUser.id;
+    const isCurrentUser = msg.senderId._id === currentUserId;
     const isSeller = msg.senderId.role === 'seller';
     const isBuyer = msg.senderId.role === 'buyer';
     const isAdmin = msg.senderId.role === 'admin';
@@ -223,7 +239,7 @@ const SellerMessages = () => {
   };
 
   const getOtherParticipant = (room) => {
-    return room.participants.find(p => p._id !== currentUser.id);
+    return room.participants.find((p) => p._id !== currentUserId);
   };
 
   const getDisplayChats = () => {

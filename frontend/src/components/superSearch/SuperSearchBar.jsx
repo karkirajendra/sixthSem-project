@@ -1,31 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaSearch, FaTimes, FaRobot } from 'react-icons/fa';
 import { performSuperSearch } from '../../api/recommendationApi';
 
-const SuperSearchBar = ({ onSearchResults }) => {
+const SuperSearchBar = ({ onSearchResults, debounceMs = 350 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const requestIdRef = useRef(0);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
+  const runSearch = async (query) => {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) {
       onSearchResults(null, '');
       return;
     }
 
+    const requestId = ++requestIdRef.current;
     setIsSearching(true);
     try {
-      const results = await performSuperSearch(searchQuery);
+      const results = await performSuperSearch(normalizedQuery);
+      if (requestId !== requestIdRef.current) return;
       
       // Pass the properties array to match your existing PropertiesPage expectations
-      onSearchResults(results.properties || [], searchQuery);
+      onSearchResults(results.properties || [], normalizedQuery);
       
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       console.error('Search failed:', error);
-      onSearchResults([], searchQuery);
+      onSearchResults([], normalizedQuery);
     } finally {
-      setIsSearching(false);
+      if (requestId === requestIdRef.current) {
+        setIsSearching(false);
+      }
     }
   };
+
+  const handleSearch = async () => {
+    await runSearch(searchQuery);
+  };
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query) {
+      onSearchResults(null, '');
+      setIsSearching(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      runSearch(query);
+    }, debounceMs);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, debounceMs]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {

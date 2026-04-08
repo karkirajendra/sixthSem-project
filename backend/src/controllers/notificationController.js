@@ -65,6 +65,26 @@ export const markAllAsRead = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Clear all notifications (delete) for current user/admin scope
+// @route   DELETE /api/notifications/clear-all
+// @access  Private
+export const clearAllNotifications = asyncHandler(async (req, res) => {
+  const query = {};
+  if (req.user && req.user.role === 'admin') {
+    query.$or = [{ recipient: null }, { recipient: req.user._id }];
+  } else {
+    query.recipient = req.user._id;
+  }
+
+  const result = await Notification.deleteMany(query);
+
+  res.json({
+    success: true,
+    message: 'All notifications cleared',
+    deletedCount: result.deletedCount || 0,
+  });
+});
+
 // Internal helper for other controllers
 export const createNotification = async ({ message, type = 'system', recipient = null, link = null }) => {
   try {

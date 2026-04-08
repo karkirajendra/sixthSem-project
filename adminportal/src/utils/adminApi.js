@@ -867,7 +867,8 @@ export const adminApi = {
   getBlogPosts: async () => {
     try {
       await ensureAuthenticated();
-      const response = await fetch(`${API_URL}/api/cms/blog`, {
+      // Admin should see all blog statuses, not only published
+      const response = await fetch(`${API_URL}/api/cms/blog?status=all`, {
         headers: createHeaders(true),
       });
 

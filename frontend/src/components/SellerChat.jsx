@@ -11,6 +11,7 @@ import { FaPaperPlane, FaUser, FaComments, FaHome, FaUsers, FaStore, FaCrown, Fa
 
 const SellerChat = () => {
   const { currentUser } = useAuth();
+  const currentUserId = currentUser?._id || currentUser?.id;
   const [chatRooms, setChatRooms] = useState([]);
   const [propertyChats, setPropertyChats] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -72,7 +73,9 @@ const SellerChat = () => {
     if (!newMessage.trim() || !selectedRoom) return;
 
     try {
-      const otherParticipant = selectedRoom.participants.find(p => p._id !== currentUser.id);
+      const otherParticipant = selectedRoom.participants.find(
+        (p) => p._id !== currentUserId
+      );
       const messageData = {
         text: newMessage,
         receiverId: otherParticipant._id,
@@ -93,7 +96,7 @@ const SellerChat = () => {
 
   // Helper function to determine message styling and info
   const getMessageInfo = (msg) => {
-    const isCurrentUser = msg.senderId._id === currentUser.id;
+    const isCurrentUser = msg.senderId._id === currentUserId;
     const isSeller = msg.senderId.role === 'seller';
     const isBuyer = msg.senderId.role === 'buyer';
     const isAdmin = msg.senderId.role === 'admin';
@@ -135,7 +138,7 @@ const SellerChat = () => {
   };
 
   const getOtherParticipant = (room) => {
-    return room.participants.find(p => p._id !== currentUser.id);
+    return room.participants.find((p) => p._id !== currentUserId);
   };
 
   const getDisplayChats = () => {

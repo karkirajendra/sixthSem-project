@@ -6,6 +6,7 @@ import {
   uploadMultipleImages,
   geocodeAddress,
 } from '../../api/api';
+import { sellerApi } from '../../api/sellerApi';
 import { useDropzone } from 'react-dropzone';
 import {
   FiSave,
@@ -73,13 +74,14 @@ const AddProperty = () => {
     title: '',
     description: '',
     price: '',
+    contactPhone: '',
     type: 'room', // Default to room
     roomType: '', // Required when type is 'room'
     flatType: '', // Required when type is 'flat' or 'apartment'
     location: '',
     area: '', // Changed from 'size' to match backend model
-    bedrooms: 0,
-    bathrooms: 0,
+    bedrooms: '',
+    bathrooms: '',
     images: [], // URLs from uploaded images
     features: {
       electricity: false,
@@ -99,6 +101,24 @@ const AddProperty = () => {
     },
     availableFrom: new Date().toISOString().split('T')[0], // Date input format
   });
+
+  useEffect(() => {
+    const loadSellerPhone = async () => {
+      try {
+        const response = await sellerApi.getProfile();
+        if (response?.success) {
+          const phone = response?.data?.profile?.phone || '';
+          if (phone) {
+            setPropertyData((prev) => ({ ...prev, contactPhone: phone }));
+          }
+        }
+      } catch (error) {
+        // Silent fail; user can still type phone manually.
+      }
+    };
+
+    loadSellerPhone();
+  }, []);
 
   const [coordinates, setCoordinates] = useState({
     latitude: '',
@@ -162,7 +182,6 @@ const AddProperty = () => {
     { value: 'single', label: 'Single Room' },
     { value: 'double', label: 'Double Room' },
     { value: 'single-kitchen', label: 'Single Room with Kitchen' },
-    { value: 'double-kitchen', label: 'Double Room with Kitchen' },
     { value: 'studio', label: 'Studio' },
   ];
 
@@ -171,7 +190,6 @@ const AddProperty = () => {
     { value: '2bhk', label: '2 BHK' },
     { value: '3bhk', label: '3 BHK' },
     { value: '4bhk', label: '4 BHK' },
-    { value: 'penthouse', label: 'Penthouse' },
   ];
 
   const locations = [
@@ -507,6 +525,7 @@ const createShortSearchLocation = (result) => {
 
   const handlePropertyChange = (e) => {
     const { name, value, type } = e.target;
+    const normalizedValue = type === 'number' ? value : value;
 
     if (name.includes('.')) {
       // Handle nested objects like address.street
@@ -544,13 +563,13 @@ const createShortSearchLocation = (result) => {
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: type === 'number' ? Number(value) : value,
+          [child]: normalizedValue,
         },
       }));
     } else {
       setPropertyData((prev) => ({
         ...prev,
-        [name]: type === 'number' ? Number(value) : value,
+        [name]: normalizedValue,
       }));
     }
   };
@@ -754,6 +773,10 @@ const handleSubmit = async (e) => {
     errors.push('Property price is required');
   }
 
+  if (!propertyData.contactPhone?.trim()) {
+    errors.push('Contact phone number is required');
+  }
+
   if (!propertyData.location?.trim()) {
     errors.push('Property location is required');
   }
@@ -795,6 +818,7 @@ const handleSubmit = async (e) => {
       description: propertyData.description.trim() || 'No description provided', // Ensure description is never empty
       type: propertyData.type.toLowerCase(),
       price: Number(propertyData.price),
+      contactPhone: propertyData.contactPhone.trim(),
       location: propertyData.location.trim().substring(0, 50), // TRUNCATE TO 50 CHARACTERS
       area: Number(propertyData.area),
       bedrooms: Number(propertyData.bedrooms) || 0,
@@ -1017,6 +1041,24 @@ const handleSubmit = async (e) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  name="contactPhone"
+                  value={propertyData.contactPhone}
+                  onChange={handlePropertyChange}
+                  placeholder="Enter phone number"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from your profile if available. You can edit it for this listing.
+                </p>
               </div>
 
               <div>

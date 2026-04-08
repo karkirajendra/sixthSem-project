@@ -105,6 +105,14 @@ const PropertyDetailPage = () => {
     email: 'owner@example.com',
     phone: '+977-1-234567'
   }) : null;
+  const displayPhone =
+    property?.contactPhone ||
+    seller?.profile?.phone ||
+    seller?.phone ||
+    seller?.phoneNumber ||
+    '';
+  const whatsappPhone = displayPhone.replace(/[^\d]/g, '');
+  const whatsappLink = whatsappPhone ? `https://wa.me/${whatsappPhone}` : null;
 
   const handleWishlistToggle = async () => {
     if (!isLoggedIn || !currentUser || (!currentUser.id && !currentUser._id)) {
@@ -431,7 +439,19 @@ const PropertyDetailPage = () => {
                   <div className="space-y-4">
                     <div className="flex items-center text-gray-600">
                       <FaPhone className="mr-3 text-green-500" />
-                      <span>{seller.phone || seller.phoneNumber || 'Contact via chat'}</span>
+                      {whatsappLink ? (
+                        <a
+                          href={whatsappLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-green-600 hover:text-green-700 hover:underline font-medium"
+                          title="Chat on WhatsApp"
+                        >
+                          {displayPhone}
+                        </a>
+                      ) : (
+                        <span>Contact via chat</span>
+                      )}
                     </div>
                     <div className="flex items-center text-gray-600">
                       <FaEnvelope className="mr-3 text-green-500" />

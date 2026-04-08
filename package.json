@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "baseline-browser-mapping": "^2.10.16",
     "postcss-scss": "^4.0.9",
     "stylelint": "^16.25.0"
   }

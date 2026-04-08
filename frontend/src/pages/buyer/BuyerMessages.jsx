@@ -11,6 +11,7 @@ import { FaPaperPlane, FaUser, FaComments, FaStore, FaHome, FaBuilding, FaCheck,
 
 const BuyerMessages = () => {
   const { currentUser } = useAuth();
+  const currentUserId = currentUser?._id || currentUser?.id;
   const [chatRooms, setChatRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -40,6 +41,18 @@ const BuyerMessages = () => {
       initializeWebSocket(selectedRoom._id);
     }
   }, [selectedRoom]);
+
+  // Poll fallback for room list/message updates when websocket is unavailable
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadChatRooms();
+      if (selectedRoom?._id) {
+        loadMessages(selectedRoom._id);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [selectedRoom?._id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -78,11 +91,11 @@ const BuyerMessages = () => {
           // Update chat room list with new message
           setChatRooms(prev => prev.map(room => 
             room._id === roomId 
-              ? { ...room, lastMessage: data.message, hasUnread: data.message.senderId._id !== currentUser.id }
+              ? { ...room, lastMessage: data.message, hasUnread: data.message.senderId._id !== currentUserId }
               : room
           ));
         } else if (data.type === 'user_typing') {
-          if (data.userId !== currentUser.id) {
+          if (data.userId !== currentUserId) {
             setTypingUser(data.userName);
             setIsTyping(true);
             setTimeout(() => {
@@ -114,7 +127,7 @@ const BuyerMessages = () => {
       const roomsWithUnread = rooms.map(room => ({
         ...room,
         hasUnread: room.lastMessage && 
-                   room.lastMessage.senderId._id !== currentUser.id && 
+                   room.lastMessage.senderId._id !== currentUserId && 
                    !room.lastMessage.read
       }));
       setChatRooms(roomsWithUnread);
@@ -142,7 +155,9 @@ const BuyerMessages = () => {
     setNewMessage('');
 
     try {
-      const otherParticipant = selectedRoom.participants.find(p => p._id !== currentUser.id);
+      const otherParticipant = selectedRoom.participants.find(
+        (p) => p._id !== currentUserId
+      );
       const messageData = {
         text: messageText,
         receiverId: otherParticipant._id,
@@ -152,6 +167,7 @@ const BuyerMessages = () => {
 
       const sentMessage = await sendMessage(messageData);
       setMessages(prev => [...prev, sentMessage]);
+      loadChatRooms();
       
     } catch (error) {
       console.error('Error sending message:', error);
@@ -164,7 +180,7 @@ const BuyerMessages = () => {
       wsRef.current.send(JSON.stringify({
         type: 'typing',
         roomId: selectedRoom._id,
-        userId: currentUser.id,
+        userId: currentUserId,
         userName: currentUser.name
       }));
     }
@@ -194,7 +210,7 @@ const BuyerMessages = () => {
   };
 
   const getMessageInfo = (msg) => {
-    const isCurrentUser = msg.senderId._id === currentUser.id;
+    const isCurrentUser = msg.senderId._id === currentUserId;
     const isSeller = msg.senderId.role === 'seller';
     const isAdmin = msg.senderId.role === 'admin';
 
@@ -240,7 +256,7 @@ const BuyerMessages = () => {
 
   // Get OTHER participant (not current user)
   const getOtherParticipant = (room) => {
-    return room.participants.find(p => p._id !== currentUser.id);
+    return room.participants.find((p) => p._id !== currentUserId);
   };
 
   if (loading) {

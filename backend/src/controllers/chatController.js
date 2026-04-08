@@ -3,6 +3,35 @@ import ChatRoom from '../models/ChatRoom.js';
 import Message from '../models/Message.js';
 import User from '../models/user.js';
 import Property from '../models/Property.js';
+import { createNotification } from './notificationController.js';
+
+const getRoomUniqueKey = (room) => {
+  const participantIds = (room.participants || [])
+    .map((p) => (typeof p === 'string' ? p : p?._id?.toString?.() || p?.toString?.()))
+    .filter(Boolean)
+    .sort()
+    .join('_');
+  const propertyId = room.propertyId?._id?.toString?.() || room.propertyId?.toString?.() || 'no_property';
+  const adminFlag = room.isAdminChat ? 'admin' : 'regular';
+  return `${participantIds}__${propertyId}__${adminFlag}`;
+};
+
+const dedupeRooms = (rooms = []) => {
+  const map = new Map();
+  for (const room of rooms) {
+    const key = getRoomUniqueKey(room);
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, room);
+      continue;
+    }
+    // Keep the latest room if duplicates already exist in DB
+    if (new Date(room.updatedAt || 0) > new Date(existing.updatedAt || 0)) {
+      map.set(key, room);
+    }
+  }
+  return Array.from(map.values());
+};
 
 // Helper to build participants array (current user + other user)
 const resolveParticipants = async (currentUserId, { sellerId, buyerId, otherUserId }) => {
@@ -44,26 +73,23 @@ export const getOrCreateChatRoom = asyncHandler(async (req, res) => {
     throw new Error('A chat room requires at least two participants');
   }
 
-  const normalizedParticipants = participants.map((id) => id.toString()).sort();
+  const normalizedParticipants = Array.from(
+    new Set(participants.map((id) => id.toString()))
+  ).sort();
 
-  // Find an existing room with same participants and property
-  const existingRooms = await ChatRoom.find({
+  // Find existing room with exact same participants/property/admin flag
+  let room = await ChatRoom.findOne({
     propertyId: propertyId || null,
     isAdminChat: !!isAdminChat,
+    participants: {
+      $all: normalizedParticipants,
+      $size: normalizedParticipants.length,
+    },
   }).lean();
-
-  let room =
-    existingRooms.find((r) => {
-      const ids = r.participants.map((p) => p.toString()).sort();
-      return (
-        ids.length === normalizedParticipants.length &&
-        ids.every((id, idx) => id === normalizedParticipants[idx])
-      );
-    }) || null;
 
   if (!room) {
     const created = await ChatRoom.create({
-      participants,
+      participants: normalizedParticipants,
       propertyId: propertyId || null,
       isAdminChat: !!isAdminChat,
     });
@@ -97,7 +123,7 @@ export const getUserChatRooms = asyncHandler(async (req, res) => {
     })
     .lean();
 
-  res.json(rooms);
+  res.json(dedupeRooms(rooms));
 });
 
 // @desc    Get property-related chats (primarily for sellers)
@@ -117,7 +143,7 @@ export const getPropertyChats = asyncHandler(async (req, res) => {
     })
     .lean();
 
-  res.json(rooms);
+  res.json(dedupeRooms(rooms));
 });
 
 // @desc    Get messages for a chat room (buyer endpoint)
@@ -193,6 +219,17 @@ export const sendMessage = asyncHandler(async (req, res) => {
     .populate('senderId', 'name role profile')
     .populate('receiverId', 'name role profile')
     .lean();
+
+  // Create receiver notification for every new message
+  const senderName = populatedMessage.senderId?.name || 'Someone';
+  await createNotification({
+    message: `New message from ${senderName}`,
+    type: 'system',
+    recipient: receiverId,
+    link: populatedMessage.propertyId
+      ? `/property/${populatedMessage.propertyId}`
+      : '/buyer/messages',
+  });
 
   res.status(201).json(populatedMessage);
 });
@@ -270,7 +307,7 @@ export const getSellerChatRooms = asyncHandler(async (req, res) => {
     })
     .lean();
 
-  res.json(rooms);
+  res.json(dedupeRooms(rooms));
 });
 
 // @desc    Get seller property chats
@@ -290,6 +327,6 @@ export const getSellerPropertyChats = asyncHandler(async (req, res) => {
     })
     .lean();
 
-  res.json(rooms);
+  res.json(dedupeRooms(rooms));
 });
 

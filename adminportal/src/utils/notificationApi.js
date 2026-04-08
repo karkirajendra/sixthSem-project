@@ -58,4 +58,18 @@ export const notificationApi = {
       return { success: false, error: error.message };
     }
   },
+
+  // Clear all notifications
+  clearAll: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/notifications/clear-all`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      return await handleApiResponse(response);
+    } catch (error) {
+      console.error('API Error in clearAll:', error);
+      return { success: false, error: error.message };
+    }
+  },
 };

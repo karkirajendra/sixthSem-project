@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { submitContactForm } from '../api/contactApi';
+import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const ContactPage = () => {
+  const { currentUser, isLoggedIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +20,17 @@ const ContactPage = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  // Prefill logged-in user details; keep fields empty for guests
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser) return;
+    setFormData((prev) => ({
+      ...prev,
+      name: currentUser.name || prev.name,
+      email: currentUser.email || prev.email,
+      phone: currentUser.profile?.phone || prev.phone,
+    }));
+  }, [isLoggedIn, currentUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

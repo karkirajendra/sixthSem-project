@@ -2,32 +2,44 @@
 import { API_URL } from '../config.js';
 export const performSuperSearch = async (query, page = 1, limit = 12) => {
   try {
-    // First try the API
-    const response = await fetch(`${API_URL}/api/properties/super-search?page=${page}&limit=${limit}`, {
-      method: 'POST',
+    // Use existing backend endpoint: GET /api/properties/search?q=...
+    const params = new URLSearchParams({
+      q: query || '',
+      page: String(page),
+      limit: String(limit),
+    });
+    const response = await fetch(`${API_URL}/api/properties/search?${params.toString()}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query }),
     });
     if (response.ok) {
       const data = await response.json();
       if (data.success) {
-        console.log('API Super Search Results:', data.data);
         // Return the properties with the additional metadata
         return {
-          properties: data.data.properties || [],
-          pagination: data.data.pagination || {},
-          searchParams: data.data.searchParams || {},
+          properties: data.data || data.properties || [],
+          pagination: {
+            currentPage: data.currentPage || page,
+            totalPages: data.totalPages || 1,
+            totalProperties: data.total || 0,
+            hasNextPage: (data.currentPage || page) < (data.totalPages || 1),
+            hasPrevPage: (data.currentPage || page) > 1,
+          },
+          searchParams: {
+            originalQuery: query,
+            parsedQuery: null,
+            filtersApplied: {},
+          },
           isAISearch: true
         };
       }
     } else {
-      console.warn('API super search failed, falling back to local search');
       throw new Error('API super search failed');
     }
   } catch (error) {
-    console.error('API Super search error, using fallback:', error);
+    console.warn('API Super search failed, using fallback search');
     // Fallback to your existing enhanced local search
     try {
       const fallbackResults = await superSearch(query);

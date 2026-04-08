@@ -52,6 +52,15 @@ const Blog = () => {
     return posts.filter((p) => (p.status || '').toLowerCase() === filter);
   }, [posts, filter]);
 
+  const statusCounts = useMemo(() => {
+    const counts = { all: posts.length, published: 0, draft: 0, archived: 0 };
+    posts.forEach((post) => {
+      const status = (post.status || '').toLowerCase();
+      if (status in counts) counts[status] += 1;
+    });
+    return counts;
+  }, [posts]);
+
   const openCreate = () => {
     setEditing(null);
     setUploadingImage(false);
@@ -154,6 +163,7 @@ const Blog = () => {
       if (editing?._id) {
         const res = await adminApi.updateBlogPost(editing._id, payload);
         if (res.success) {
+          toast.success('Blog post updated successfully');
           setIsModalOpen(false);
           await load();
         } else {
@@ -163,6 +173,7 @@ const Blog = () => {
       }
       const res = await adminApi.createBlogPost(payload);
       if (res.success) {
+        toast.success('Blog post created successfully');
         setIsModalOpen(false);
         await load();
       } else {
@@ -183,6 +194,7 @@ const Blog = () => {
         toast.error(res.message || 'Failed to delete blog post');
         return;
       }
+      toast.success('Blog post deleted successfully');
       await load();
     } finally {
       setLoading(false);
@@ -209,8 +221,19 @@ const Blog = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-card p-4 flex items-center justify-between">
-        <div className="text-sm text-gray-600">
-          Total: <span className="font-semibold">{posts.length}</span>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+            All: <span className="font-semibold">{statusCounts.all}</span>
+          </span>
+          <span className="px-2 py-1 rounded-full bg-green-100 text-green-700">
+            Published: <span className="font-semibold">{statusCounts.published}</span>
+          </span>
+          <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+            Draft: <span className="font-semibold">{statusCounts.draft}</span>
+          </span>
+          <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+            Archived: <span className="font-semibold">{statusCounts.archived}</span>
+          </span>
         </div>
         <select
           value={filter}

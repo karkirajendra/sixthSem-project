@@ -198,25 +198,7 @@ const PropertiesPage = () => {
         setTotalCount(total);
         setTotalPages(pages);
         setCurrentPage(page);
-        if (superSearchQuery) {
-          const results = await performSuperSearch(superSearchQuery);
-
-          // Handle the response structure correctly
-          let propertiesArray = [];
-          if (results && typeof results === 'object') {
-            if (Array.isArray(results)) {
-              // Old format - direct array
-              propertiesArray = results;
-            } else if (results.properties && Array.isArray(results.properties)) {
-              // New API format - extract properties array
-              propertiesArray = results.properties;
-            }
-          }
-
-          const normalizedResults = normalizeProperties(propertiesArray);
-          console.log('SuperSearch Results:', normalizedResults);
-          setFilteredProperties(normalizedResults);
-        } else {
+        if (!superSearchQuery) {
           console.log('Setting filtered properties to:', propertiesData);
           setFilteredProperties(propertiesData);
         }

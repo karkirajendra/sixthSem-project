@@ -3,6 +3,7 @@ import Property from '../models/Property.js';
 import User from '../models/user.js';
 import Wishlist from '../models/Wishlist.js';
 import { trackPropertyView } from '../middlewares/analytics.js';
+import { createNotification } from './notificationController.js';
 
 // @desc    Get all properties with filters
 // @route   GET /api/properties
@@ -144,7 +145,9 @@ export const getPropertyById = asyncHandler(async (req, res) => {
       property.views.anonymous += 1;
     }
 
-    await property.save();
+    // Old properties may not yet have newly added fields (e.g. contactPhone).
+    // Skip full validation when only incrementing view counters.
+    await property.save({ validateBeforeSave: false });
     
     // Store view timestamp in cache
     viewCache.set(viewKey, now);
@@ -172,14 +175,41 @@ export const getPropertyById = asyncHandler(async (req, res) => {
 // @route   POST /api/properties
 // @access  Private (Seller)
 export const createProperty = asyncHandler(async (req, res) => {
+  const sellerPhone = req.user?.profile?.phone?.trim();
+  const submittedPhone = req.body?.contactPhone?.trim();
+  const contactPhone = submittedPhone || sellerPhone;
+
+  if (!contactPhone) {
+    res.status(400);
+    throw new Error(
+      'Contact phone is required. Please add your phone in profile settings or enter it while listing.'
+    );
+  }
+
   const propertyData = {
     ...req.body,
+    contactPhone,
     sellerId: req.user._id,
   };
 
   console.log(propertyData);
 
   const property = await Property.create(propertyData);
+
+  // Notify seller and admins about newly created listing
+  await createNotification({
+    message: `Your listing "${property.title}" has been created.`,
+    type: 'property',
+    recipient: req.user._id,
+    link: `/seller/property/${property._id}`,
+  });
+
+  await createNotification({
+    message: `New property "${property.title}" was submitted by ${req.user.name}.`,
+    type: 'property',
+    recipient: null,
+    link: '/properties',
+  });
 
   res.status(201).json({
     success: true,
@@ -700,7 +730,8 @@ export const toggleFeatured = asyncHandler(async (req, res) => {
   }
 
   property.featured = !property.featured;
-  await property.save();
+  // Skip full validation so legacy listings remain editable.
+  await property.save({ validateBeforeSave: false });
 
   res.json({
     success: true,

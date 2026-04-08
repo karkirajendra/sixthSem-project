@@ -5,6 +5,7 @@ import Feedback from '../models/Feedback.js';
 import Analytics from '../models/Analytics.js';
 import Wishlist from '../models/Wishlist.js';
 import { CmsPage } from '../models/CmsPage.js';
+import { createNotification } from './notificationController.js';
 
 // @desc    Get all users
 // @route   GET /api/admin/users
@@ -1000,6 +1001,14 @@ export const updatePropertyStatus = asyncHandler(async (req, res) => {
 
   property.status = status;
   await property.save();
+
+  // Notify seller when admin changes listing status
+  await createNotification({
+    message: `Your listing "${property.title}" status was updated to "${status}".`,
+    type: 'property',
+    recipient: property.sellerId,
+    link: `/seller/property/${property._id}`,
+  });
 
   res.json({
     success: true,
