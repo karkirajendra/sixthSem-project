@@ -22,32 +22,6 @@ const PropertiesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Debug function - can be called from browser console
-  window.testPropertiesAPI = async () => {
-    try {
-      console.log('Testing API...');
-      const result = await getAllProperties({});
-      console.log('API test result:', result);
-      return result;
-    } catch (error) {
-      console.error('API test failed:', error);
-      return error;
-    }
-  };
-
-  // Direct fetch test
-  window.testDirectFetch = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/properties')
-      const data = await response.json();
-      console.log('Direct fetch data:', data);
-      return data;
-    } catch (error) {
-      console.error('Direct fetch failed:', error);
-      return error;
-    }
-  };
-
   // Helper function to normalize property data from API
   const normalizeProperty = useCallback((property) => {
     // Get formatted image URL using utility function
@@ -153,6 +127,17 @@ const PropertiesPage = () => {
 
   const [filters, setFilters] = useState(initialFilters);
 
+  // Keep local filters in sync with URL query params (back/forward/direct link).
+  useEffect(() => {
+    setFilters({
+      location: searchParams.get('location') || '',
+      type: searchParams.get('type') || '',
+      minPrice: searchParams.get('minPrice') || '',
+      maxPrice: searchParams.get('maxPrice') || '',
+      q: searchParams.get('q') || '',
+    });
+  }, [searchParams]);
+
   // Load properties based on filters
   useEffect(() => {
     const loadProperties = async () => {
@@ -235,7 +220,7 @@ const PropertiesPage = () => {
     };
 
     loadProperties();
-  }, [filters, searchParams, normalizeProperties]);
+  }, [filters, normalizeProperties]);
 
   // Handle search submission from traditional filters
   const handleSearch = (searchFilters) => {

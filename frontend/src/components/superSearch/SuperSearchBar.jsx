@@ -6,6 +6,7 @@ const SuperSearchBar = ({ onSearchResults, debounceMs = 350 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const requestIdRef = useRef(0);
+  const debounceTimeoutRef = useRef(null);
 
   const runSearch = async (query) => {
     const normalizedQuery = query.trim();
@@ -35,6 +36,10 @@ const SuperSearchBar = ({ onSearchResults, debounceMs = 350 }) => {
   };
 
   const handleSearch = async () => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+    }
     await runSearch(searchQuery);
   };
 
@@ -46,11 +51,16 @@ const SuperSearchBar = ({ onSearchResults, debounceMs = 350 }) => {
       return;
     }
 
-    const timeoutId = setTimeout(() => {
+    debounceTimeoutRef.current = setTimeout(() => {
       runSearch(query);
     }, debounceMs);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
+    };
   }, [searchQuery, debounceMs]);
 
   const handleKeyPress = (e) => {

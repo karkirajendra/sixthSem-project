@@ -13,19 +13,19 @@ import {
   getBlogCategories,
   getBlogTags,
 } from '../controllers/cmsController.js';
-import { protect, roleAuth } from '../middlewares/auth.js';
+import { protect, roleAuth, optionalAuth } from '../middlewares/auth.js';
 
 const router = express.Router();
 
 // CMS Pages routes
-router.get('/pages', getCmsPages);
+router.get('/pages', optionalAuth, getCmsPages);
 router.get('/pages/:slug', getCmsPageBySlug);
 router.post('/pages', protect, roleAuth('admin'), createCmsPage);
 router.put('/pages/:id', protect, roleAuth('admin'), updateCmsPage);
 router.delete('/pages/:id', protect, roleAuth('admin'), deleteCmsPage);
 
 // Blog routes
-router.get('/blog', getBlogPosts);
+router.get('/blog', optionalAuth, getBlogPosts);
 router.get('/blog/categories', getBlogCategories);
 router.get('/blog/tags', getBlogTags);
 router.get('/blog/:slug', getBlogPostBySlug);

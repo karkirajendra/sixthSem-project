@@ -6,6 +6,7 @@ import {
   getSellerRoomMessages,
   sendSellerMessage,
   markSellerMessagesAsRead,
+  getUnreadCount,
 } from '../controllers/chatController.js';
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.get('/property-chats', getSellerPropertyChats);
 router.get('/messages/:roomId', getSellerRoomMessages);
 router.post('/message', sendSellerMessage);
 router.put('/messages/read', markSellerMessagesAsRead);
+router.get('/unread-count', getUnreadCount);
 
 export default router;
 

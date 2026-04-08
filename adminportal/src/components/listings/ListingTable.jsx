@@ -17,6 +17,8 @@ import {
   deletePropertyAdmin,
   togglePropertyFeatured,
   bulkUpdatePropertiesStatus,
+  getUsers,
+  adminApi,
 } from '../../utils/adminApi';
 
 const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
@@ -38,30 +40,111 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
     price: '',
     location: '',
     status: 'Active',
+    sellerId: '',
     owner: '',
+    sellerEmail: '',
+    sellerPhone: '',
   });
+  const [sellerOptions, setSellerOptions] = useState([]);
 
   // Update listings when prop changes
   useEffect(() => {
     setListings(initialListings);
   }, [initialListings]);
 
+  useEffect(() => {
+    const loadSellers = async () => {
+      try {
+        const result = await getUsers('seller');
+        if (result?.success && Array.isArray(result.data)) {
+          setSellerOptions(
+            result.data.map((user) => ({
+              id: user._id || user.id,
+              name: user.name || 'Unnamed Seller',
+              email: user.email || '',
+              phone: user.profile?.phone || user.phone || '',
+            }))
+          );
+        } else {
+          setSellerOptions([]);
+        }
+      } catch {
+        setSellerOptions([]);
+      }
+    };
+
+    loadSellers();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'sellerId') {
+      const selectedSeller = sellerOptions.find((seller) => seller.id === value);
+      setFormData((prev) => ({
+        ...prev,
+        sellerId: value,
+        owner: selectedSeller?.name || '',
+        sellerEmail: selectedSeller?.email || '',
+        sellerPhone: selectedSeller?.phone || '',
+      }));
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEditListing = (e) => {
+  const handleEditListing = async (e) => {
     e.preventDefault();
-    setListings((prev) =>
-      prev.map((listing) =>
-        listing.id === selectedListing.id
-          ? { ...listing, ...formData }
-          : listing
-      )
-    );
-    setShowEditModal(false);
-    toast.success('Listing updated successfully');
+
+    if (!selectedListing?.id) {
+      toast.error('No listing selected');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const statusMap = {
+        Active: 'available',
+        Pending: 'pending',
+        Rejected: 'rejected',
+      };
+
+      const updatePayload = {
+        title: formData.title,
+        type: (formData.type || '').toLowerCase(),
+        price: Number(formData.price),
+        location: formData.location,
+        status: statusMap[formData.status] || 'pending',
+        ...(formData.sellerId ? { sellerId: formData.sellerId } : {}),
+      };
+
+      const result = await adminApi.updateProperty(selectedListing.id, updatePayload);
+
+      if (!result?.success) {
+        throw new Error(result?.message || 'Failed to update listing');
+      }
+
+      setListings((prev) =>
+        prev.map((listing) =>
+          listing.id === selectedListing.id
+            ? {
+              ...listing,
+              ...formData,
+              owner: formData.owner || listing.owner,
+            }
+            : listing
+        )
+      );
+
+      setShowEditModal(false);
+      toast.success('Listing updated successfully');
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      toast.error(error.message || 'Failed to update listing');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteListing = async () => {
@@ -316,18 +399,62 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
               }`}
           >
-            Owner
+            Seller Name
           </label>
-          <input
-            type="text"
-            name="owner"
-            value={formData.owner}
+          <select
+            name="sellerId"
+            value={formData.sellerId || ''}
             onChange={handleInputChange}
             className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
               ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
               : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
               } focus:ring-2 focus:ring-blue-500/20`}
-            required
+          >
+            <option value="">Select Seller</option>
+            {sellerOptions.map((seller) => (
+              <option key={seller.id} value={seller.id}>
+                {seller.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
+          >
+            Seller Email
+          </label>
+          <input
+            type="email"
+            name="sellerEmail"
+            value={formData.sellerEmail || ''}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
+            readOnly
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label
+            className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}
+          >
+            Seller Phone
+          </label>
+          <input
+            type="text"
+            name="sellerPhone"
+            value={formData.sellerPhone || ''}
+            className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+              : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+              } focus:ring-2 focus:ring-blue-500/20`}
+            readOnly
           />
         </div>
         <div>
@@ -734,7 +861,22 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                             title="Edit listing"
                             onClick={() => {
                               setSelectedListing(listing);
-                              setFormData(listing);
+                              const matchedSeller =
+                                sellerOptions.find(
+                                  (seller) =>
+                                    seller.id === listing.sellerId ||
+                                    seller.name === listing.owner
+                                ) || null;
+
+                              setFormData({
+                                ...listing,
+                                sellerId: matchedSeller?.id || listing.sellerId || '',
+                                owner: matchedSeller?.name || listing.owner || '',
+                                sellerEmail:
+                                  matchedSeller?.email || listing.sellerEmail || '',
+                                sellerPhone:
+                                  matchedSeller?.phone || listing.sellerPhone || '',
+                              });
                               setShowEditModal(true);
                             }}
                           >

@@ -85,8 +85,8 @@ const HomePage = () => {
       const queryParams = new URLSearchParams();
 
       // Handle search query (from search box)
-      if (searchParams.search) {
-        queryParams.append('q', searchParams.search);
+      if (searchParams.q) {
+        queryParams.append('q', searchParams.q);
       }
 
       // Handle filter parameters
@@ -113,8 +113,8 @@ const HomePage = () => {
       console.error('Search error:', error);
       // Fallback navigation
       const queryParams = new URLSearchParams();
-      if (searchParams.search) {
-        queryParams.append('q', searchParams.search);
+      if (searchParams.q) {
+        queryParams.append('q', searchParams.q);
       }
       if (searchParams.location)
         queryParams.append('location', searchParams.location);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FiSave,
   FiUser,
@@ -13,7 +13,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { useAppContext } from '../context/AppContext';
-import { uploadSingleImage, uploadMultipleImages } from '../utils/adminApi';
+import {
+  uploadSingleImage,
+  uploadMultipleImages,
+  getUsers,
+} from '../utils/adminApi';
 import toast from 'react-hot-toast';
 
 const AddListings = ({ isDark }) => {
@@ -21,11 +25,13 @@ const AddListings = ({ isDark }) => {
   const { addProperty } = useAppContext();
 
   const [sellerData, setSellerData] = useState({
+    sellerId: '',
     name: '',
     email: '',
     phone: '',
     role: 'seller',
   });
+  const [sellerOptions, setSellerOptions] = useState([]);
 
   const [propertyData, setPropertyData] = useState({
     title: '',
@@ -91,8 +97,46 @@ const AddListings = ({ isDark }) => {
     'Students Welcome',
   ];
 
+  useEffect(() => {
+    const loadSellers = async () => {
+      try {
+        const result = await getUsers('seller');
+        if (result?.success && Array.isArray(result.data)) {
+          setSellerOptions(
+            result.data.map((user) => ({
+              sellerId: user._id || user.id,
+              name: user.name || 'Unnamed Seller',
+              email: user.email || '',
+              phone: user.profile?.phone || user.phone || '',
+            }))
+          );
+        } else {
+          setSellerOptions([]);
+        }
+      } catch {
+        setSellerOptions([]);
+      }
+    };
+
+    loadSellers();
+  }, []);
+
   const handleSellerChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'sellerId') {
+      const selectedSeller = sellerOptions.find(
+        (seller) => seller.sellerId === value
+      );
+      setSellerData((prev) => ({
+        ...prev,
+        sellerId: value,
+        name: selectedSeller?.name || '',
+        email: selectedSeller?.email || '',
+        phone: selectedSeller?.phone || '',
+      }));
+      return;
+    }
+
     setSellerData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -228,6 +272,7 @@ const AddListings = ({ isDark }) => {
 
     // Basic validation
     if (
+      !sellerData.sellerId ||
       !propertyData.title ||
       !propertyData.price ||
       !propertyData.location ||
@@ -261,6 +306,7 @@ const AddListings = ({ isDark }) => {
     try {
       // Format data to match the Property model
       const formattedPropertyData = {
+        sellerId: sellerData.sellerId,
         title: propertyData.title,
         description: propertyData.description,
         type: propertyData.type.toLowerCase(), // Convert to lowercase
@@ -275,6 +321,7 @@ const AddListings = ({ isDark }) => {
         area: Number(propertyData.area),
         bedrooms: Number(propertyData.bedrooms),
         bathrooms: Number(propertyData.bathrooms),
+        contactPhone: sellerData.phone,
         features: propertyData.features,
         images: propertyData.images,
         amenities: propertyData.amenities,
@@ -365,14 +412,20 @@ const AddListings = ({ isDark }) => {
               <label className={labelStyles}>
                 Seller Name <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                name="name"
-                value={sellerData.name}
+              <select
+                name="sellerId"
+                value={sellerData.sellerId}
                 onChange={handleSellerChange}
                 className={inputStyles}
                 required
-              />
+              >
+                <option value="">Select seller</option>
+                {sellerOptions.map((seller) => (
+                  <option key={seller.sellerId} value={seller.sellerId}>
+                    {seller.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -383,9 +436,9 @@ const AddListings = ({ isDark }) => {
                 type="email"
                 name="email"
                 value={sellerData.email}
-                onChange={handleSellerChange}
                 className={inputStyles}
                 required
+                readOnly
               />
             </div>
 
@@ -397,9 +450,9 @@ const AddListings = ({ isDark }) => {
                 type="tel"
                 name="phone"
                 value={sellerData.phone}
-                onChange={handleSellerChange}
                 className={inputStyles}
                 required
+                readOnly
               />
             </div>
           </form>

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 const SearchFilters = ({ onSearch, layout = 'vertical' }) => {
-  const [search, setSearch] = useState('');
+  const [q, setQ] = useState('');
   const [location, setLocation] = useState('');
   const [type, setType] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -19,7 +19,7 @@ const SearchFilters = ({ onSearch, layout = 'vertical' }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSearch({
-      search,
+      q,
       location,
       type,
       minPrice: minPrice ? Number(minPrice) : undefined,
@@ -75,8 +75,8 @@ const SearchFilters = ({ onSearch, layout = 'vertical' }) => {
                 </div>
                 <input
                   id="search-h"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
                   placeholder="Search properties..."
                   className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 text-gray-900 placeholder-gray-500 text-sm"
                 />
@@ -237,13 +237,13 @@ const SearchFilters = ({ onSearch, layout = 'vertical' }) => {
                 <button
                   type="button"
                   onClick={() => {
-                    setSearch('');
+                    setQ('');
                     setLocation('');
                     setType('');
                     setMinPrice('');
                     setMaxPrice('');
                     onSearch({
-                      search: '',
+                      q: '',
                       location: '',
                       type: '',
                       minPrice: undefined,
@@ -296,8 +296,8 @@ const SearchFilters = ({ onSearch, layout = 'vertical' }) => {
               </div>
               <input
                 id="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
                 placeholder="Search properties, locations..."
                 className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 text-gray-900 placeholder-gray-500"
               />
@@ -486,13 +486,13 @@ const SearchFilters = ({ onSearch, layout = 'vertical' }) => {
           <button
             type="button"
             onClick={() => {
-              setSearch('');
+              setQ('');
               setLocation('');
               setType('');
               setMinPrice('');
               setMaxPrice('');
               onSearch({
-                search: '',
+                q: '',
                 location: '',
                 type: '',
                 minPrice: undefined,

@@ -65,7 +65,7 @@ export const sellerApi = {
   // Get seller properties
   getProperties: async () => {
     try {
-      const response = await api.get('/properties/my-properties');
+      const response = await api.get('/properties/my/properties');
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to fetch properties');

@@ -26,11 +26,19 @@ const EditProperty = () => {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const baseApiUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:5000';
+
+  const toAbsoluteImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `${baseApiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
 
   const [propertyData, setPropertyData] = useState({
     title: '',
     description: '',
     price: '',
+    contactPhone: '',
     type: 'room',
     roomType: '',
     flatType: '',
@@ -101,6 +109,7 @@ const EditProperty = () => {
             title: property.title || '',
             description: property.description || '',
             price: property.price?.toString() || '',
+            contactPhone: property.contactPhone || '',
             type: property.type || 'room',
             roomType: property.roomType || '',
             flatType: property.flatType || '',
@@ -108,7 +117,7 @@ const EditProperty = () => {
             area: property.area?.toString() || '',
             bedrooms: property.bedrooms || 0,
             bathrooms: property.bathrooms || 0,
-            images: property.images || [],
+            images: (property.images || []).map((img) => toAbsoluteImageUrl(img)).filter(Boolean),
             features: {
               electricity: property.features?.electricity || false,
               parking: property.features?.parking || false,
@@ -196,7 +205,7 @@ const EditProperty = () => {
         if (result.success && result.imageUrl) {
           setPropertyData((prev) => ({
             ...prev,
-            images: [...prev.images, result.imageUrl],
+            images: [...prev.images, toAbsoluteImageUrl(result.imageUrl)].filter(Boolean),
           }));
           toast.success('Image uploaded successfully!');
         } else {
@@ -207,12 +216,16 @@ const EditProperty = () => {
         const result = await uploadMultipleImages(acceptedFiles);
         console.log('Multiple upload result:', result);
         if (result.success && result.imageUrls && result.imageUrls.length > 0) {
+          const formattedUrls = result.imageUrls
+            .filter((url) => url)
+            .map((url) => toAbsoluteImageUrl(url))
+            .filter(Boolean);
           setPropertyData((prev) => ({
             ...prev,
-            images: [...prev.images, ...result.imageUrls.filter((url) => url)],
+            images: [...prev.images, ...formattedUrls],
           }));
           toast.success(
-            `Successfully uploaded ${result.imageUrls.length} images!`
+            `Successfully uploaded ${formattedUrls.length} images!`
           );
         } else {
           toast.error(result.message || 'Failed to upload images');
@@ -243,11 +256,12 @@ const EditProperty = () => {
     if (
       !propertyData.title ||
       !propertyData.price ||
+      !propertyData.contactPhone ||
       !propertyData.location ||
       !propertyData.area
     ) {
       toast.error(
-        'Please fill in all required fields (title, price, location, area)'
+        'Please fill in all required fields (title, price, contact phone, location, area)'
       );
       return;
     }
@@ -286,6 +300,7 @@ const EditProperty = () => {
             ? propertyData.flatType
             : undefined,
         price: Number(propertyData.price),
+        contactPhone: propertyData.contactPhone.trim(),
         location: propertyData.location,
         area: Number(propertyData.area),
         bedrooms: Number(propertyData.bedrooms),
@@ -490,6 +505,21 @@ const EditProperty = () => {
                     min="1"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  name="contactPhone"
+                  value={propertyData.contactPhone}
+                  onChange={handlePropertyChange}
+                  placeholder="Enter contact phone number"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
               </div>
 
               <div>

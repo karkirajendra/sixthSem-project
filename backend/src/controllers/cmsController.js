@@ -44,8 +44,10 @@ const DEFAULT_PAGES = {
 // @access  Public
 export const getCmsPages = asyncHandler(async (req, res) => {
   const { type, status = 'published', page = 1, limit = 10 } = req.query;
+  const isAdmin = req.user?.role === 'admin';
+  const effectiveStatus = isAdmin ? status : 'published';
 
-  let query = { status };
+  let query = { status: effectiveStatus };
   if (type) query.type = type;
 
   const pages = await CmsPage.find(query)
@@ -166,10 +168,14 @@ export const getBlogPosts = asyncHandler(async (req, res) => {
     limit = 10,
     search,
   } = req.query;
+  const isAdmin = req.user?.role === 'admin';
 
   let query = {};
-  // For admin listing support, allow status=all (or no status) to return everything
-  if (status && status !== 'all') {
+  // Public should only see published posts.
+  if (!isAdmin) {
+    query.status = 'published';
+  } else if (status && status !== 'all') {
+    // Admin listing support: allow status=all (or explicit status)
     query.status = status;
   }
 

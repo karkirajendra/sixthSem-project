@@ -50,31 +50,33 @@ router.get('/test', (req, res) => {
 // Public analytics tracking endpoint (doesn't require auth)
 router.post('/analytics/track', trackAnalyticsEvent);
 
-// Admin login for testing - remove this in production
-router.post(
-  '/test-login',
-  asyncHandler(async (req, res) => {
-    const admin = await User.findOne({ email: 'admin@roomsathi.com' });
-    if (admin) {
-      const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE || '30d',
-      });
+// Admin test-login endpoint is development-only.
+if (process.env.NODE_ENV === 'development') {
+  router.post(
+    '/test-login',
+    asyncHandler(async (req, res) => {
+      const admin = await User.findOne({ email: 'admin@roomsathi.com' });
+      if (admin) {
+        const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_EXPIRE || '30d',
+        });
 
-      res.json({
-        success: true,
-        token,
-        data: {
-          id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          role: admin.role,
-        },
-      });
-    } else {
-      res.status(401).json({ success: false, message: 'Admin not found' });
-    }
-  })
-);
+        res.json({
+          success: true,
+          token,
+          data: {
+            id: admin._id,
+            name: admin.name,
+            email: admin.email,
+            role: admin.role,
+          },
+        });
+      } else {
+        res.status(401).json({ success: false, message: 'Admin not found' });
+      }
+    })
+  );
+}
 
 // All other admin routes require authentication and admin role
 router.use(protect);

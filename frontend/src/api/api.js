@@ -916,18 +916,9 @@ export const uploadMultipleImages = async (files) => {
 export const searchProperties = async (searchParams) => {
   try {
     const queryParams = new URLSearchParams();
-
-    // Handle search query - could be from location, type, or general search
-    let searchQuery = '';
-    if (searchParams.location) {
-      searchQuery = searchParams.location;
-    } else if (searchParams.type) {
-      searchQuery = searchParams.type;
-    } else if (searchParams.q) {
-      searchQuery = searchParams.q;
-    }
-
-    if (searchQuery) queryParams.append('q', searchQuery);
+    if (searchParams.q) queryParams.append('q', searchParams.q);
+    if (searchParams.location) queryParams.append('location', searchParams.location);
+    if (searchParams.type) queryParams.append('type', searchParams.type);
     if (searchParams.minPrice)
       queryParams.append('minPrice', searchParams.minPrice);
     if (searchParams.maxPrice)

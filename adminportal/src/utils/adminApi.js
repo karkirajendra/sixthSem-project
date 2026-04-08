@@ -751,7 +751,7 @@ export const adminApi = {
       });
 
       const data = await handleApiResponse(response);
-      return { success: true, property: data.property };
+      return { success: true, property: data.data || data.property };
     } catch (error) {
       return { success: false, message: error.message };
     }

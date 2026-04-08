@@ -28,17 +28,23 @@ export const getNotifications = asyncHandler(async (req, res) => {
 // @route   PUT /api/notifications/:id/read
 // @access  Private
 export const markAsRead = asyncHandler(async (req, res) => {
-  const notification = await Notification.findById(req.params.id);
+  const query = { _id: req.params.id };
+  if (req.user && req.user.role === 'admin') {
+    query.$or = [{ recipient: null }, { recipient: req.user._id }];
+  } else {
+    query.recipient = req.user._id;
+  }
+
+  const notification = await Notification.findOneAndUpdate(
+    query,
+    { $set: { isRead: true } },
+    { new: true }
+  );
 
   if (!notification) {
     res.status(404);
-    throw new Error('Notification not found');
+    throw new Error('Notification not found or access denied');
   }
-
-  // Optional: check if notification belongs to user
-
-  notification.isRead = true;
-  await notification.save();
 
   res.json({
     success: true,

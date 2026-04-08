@@ -77,6 +77,12 @@ export const getOrCreateChatRoom = asyncHandler(async (req, res) => {
     new Set(participants.map((id) => id.toString()))
   ).sort();
 
+  // User must be part of any room they create/open.
+  if (!normalizedParticipants.includes(currentUserId.toString())) {
+    res.status(403);
+    throw new Error('Not authorized to create or access this chat room');
+  }
+
   // Find existing room with exact same participants/property/admin flag
   let room = await ChatRoom.findOne({
     propertyId: propertyId || null,

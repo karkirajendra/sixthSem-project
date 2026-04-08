@@ -113,11 +113,6 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       user.preferences = { ...user.preferences, ...req.body.preferences };
     }
 
-    // Update password if provided
-    if (req.body.password) {
-      user.password = req.body.password;
-    }
-
     const updatedUser = await user.save();
 
     res.json({
@@ -354,8 +349,10 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    res.status(404);
-    throw new Error('No user found with that email address');
+    return res.status(200).json({
+      success: true,
+      message: 'If the email exists, a password reset link has been sent',
+    });
   }
 
   // Get reset token (stores hashed version on user doc)

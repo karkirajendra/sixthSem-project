@@ -1,6 +1,7 @@
 // src/pages/buyer/BuyerMessages.jsx
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from "../../contexts/AuthContext";
+import { API_URL } from '../../config';
 import {
   getChatRooms,
   getMessages,
@@ -70,7 +71,10 @@ const BuyerMessages = () => {
     }
 
     try {
-      const wsUrl = `ws://localhost:5000?roomId=${roomId}&userId=${userId}`;
+      const apiBase = API_URL || window.location.origin;
+      const parsedApiUrl = new URL(apiBase, window.location.origin);
+      const wsProtocol = parsedApiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${parsedApiUrl.host}/ws?roomId=${roomId}&userId=${userId}`;
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {

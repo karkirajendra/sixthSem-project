@@ -24,11 +24,11 @@ router.get('/featured', trackPageView, getFeaturedProperties);
 router.get('/search', trackPageView, searchProperties);
 router.post('/recommendations', optionalAuth, getRecommendations);
 router.get('/seller/:sellerId', trackPageView, getPropertiesBySeller);
-router.get('/:id', trackPageView, getPropertyById);
+router.get('/my/properties', protect, roleAuth('seller'), getMyProperties);
+router.get('/:id', optionalAuth, trackPageView, getPropertyById);
 
 // Private routes
 router.post('/', protect, roleAuth('seller', 'admin'), createProperty);
-router.get('/my/properties', protect, roleAuth('seller'), getMyProperties);
 
 // Property owner or admin routes
 router.put('/:id', protect, updateProperty);
