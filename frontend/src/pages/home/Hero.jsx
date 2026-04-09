@@ -9,16 +9,13 @@ const Hero = () => {
   const navigate = useNavigate();
   
   const handleSearchResults = async (results, query) => {
-  if (!results || !query) {
-    // If no results or query, navigate to properties page without super search
-    navigate('/properties');
-    return;
-  }
-  
-  // Navigate to properties page with super search query as URL parameter
-  // The PropertiesPage will handle the actual search when it detects the parameter
-  navigate(`/properties?superSearch=${encodeURIComponent(query)}`);
-};
+    // Only navigate if the user actually searched for something.
+    // This prevents auto-navigating to /properties on initial component mount
+    // when the SuperSearchBar calls this with an empty query.
+    if (query && query.trim() !== '') {
+      navigate(`/properties?superSearch=${encodeURIComponent(query)}`);
+    }
+  };
 
   return (
     <div className="relative h-screen min-h-[700px] overflow-hidden">

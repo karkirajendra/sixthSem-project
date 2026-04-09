@@ -24,9 +24,7 @@ export const getNotifications = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Mark a single notification as read
-// @route   PUT /api/notifications/:id/read
-// @access  Private
+
 export const markAsRead = asyncHandler(async (req, res) => {
   const query = { _id: req.params.id };
   if (req.user && req.user.role === 'admin') {

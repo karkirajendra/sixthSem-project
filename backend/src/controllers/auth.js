@@ -349,10 +349,8 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    return res.status(200).json({
-      success: true,
-      message: 'If the email exists, a password reset link has been sent',
-    });
+    res.status(404);
+    throw new Error('No account found with that email address');
   }
 
   // Get reset token (stores hashed version on user doc)

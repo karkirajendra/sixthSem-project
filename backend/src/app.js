@@ -50,17 +50,35 @@ app.use(
   })
 );
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: (process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000,
-  max: process.env.RATE_LIMIT_MAX || 100,
-  message: {
-    success: false,
-    message: 'Too many requests from this IP, please try again later.',
-  },
-});
+// Rate limiting — skip entirely in development to avoid blocking login/dev work
+if (process.env.NODE_ENV !== 'development') {
+  // Strict limiter for auth routes (prevents brute force attacks)
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20,                   // max 20 login/register attempts per IP
+    message: {
+      success: false,
+      message: 'Too many auth attempts from this IP, please try again after 15 minutes.',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
-app.use('/api/', limiter);
+  // Relaxed limiter for all other API routes
+  const generalLimiter = rateLimit({
+    windowMs: (process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000,
+    max: process.env.RATE_LIMIT_MAX || 500,
+    message: {
+      success: false,
+      message: 'Too many requests from this IP, please try again later.',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.use('/api/auth', authLimiter);   // strict — auth only
+  app.use('/api/', generalLimiter);    // relaxed — everything else
+}
 
 // Compression middleware
 app.use(compression());

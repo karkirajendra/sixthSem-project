@@ -7,7 +7,7 @@ import AboutSection from './AboutSection';
 import TestimonialsSection from './TestimonialsSection';
 import LocationBasedRecommendations from '../../components/LocationBasedRecommendations';
 import LocationPrompt from '../../components/LocationPrompt';
-import { getUserLocation, getCachedLocation } from '../../utils/LocationService';
+import { getUserLocation, getCachedLocation, clearCachedLocation } from '../../utils/LocationService';
 import toast from 'react-hot-toast';
 
 const HomePage = () => {
@@ -18,28 +18,25 @@ const HomePage = () => {
   const [searchCriteria, setSearchCriteria] = useState(null);
 
   useEffect(() => {
-    // Check for cached location first
-    const cachedLocation = getCachedLocation();
-    if (cachedLocation) {
-      setUserLocation(cachedLocation);
-      setLocationDetected(true);
-    } else {
-      // Show location prompt after 2 seconds
-      const timer = setTimeout(() => {
-        setShowLocationPrompt(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
+    // For guest/logged-out users: always clear old cache so the 
+    // location prompt reliably appears on every visit.
+    clearCachedLocation();
+
+    // Show location prompt after 2 seconds
+    const timer = setTimeout(() => {
+      setShowLocationPrompt(true);
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLocationAllow = async () => {
     try {
       setShowLocationPrompt(false);
       const location = await getUserLocation({ showPrompt: true });
-      
+
       setUserLocation(location);
       setLocationDetected(true);
-      
+
       if (location.source === 'gps') {
         toast.success(`Location detected: ${location.city || 'Your area'}`);
       } else if (location.source === 'ip') {
@@ -50,7 +47,7 @@ const HomePage = () => {
     } catch (error) {
       console.error('Location detection error:', error);
       toast.error('Could not detect location. Using default location.');
-      
+
       // Set default location
       const defaultLocation = {
         latitude: 27.7172,
@@ -65,7 +62,7 @@ const HomePage = () => {
 
   const handleLocationDecline = () => {
     setShowLocationPrompt(false);
-    // Set default location
+
     const defaultLocation = {
       latitude: 27.7172,
       longitude: 85.3240,
@@ -80,7 +77,7 @@ const HomePage = () => {
     try {
       // Store search criteria for recommendations
       setSearchCriteria(searchParams);
-      
+
       // Construct query params string for navigation
       const queryParams = new URLSearchParams();
 
@@ -160,7 +157,7 @@ const HomePage = () => {
 
       {/* Location-based Recommendations */}
       {locationDetected && userLocation && (
-        <LocationBasedRecommendations 
+        <LocationBasedRecommendations
           userLocation={userLocation}
           searchCriteria={searchCriteria}
         />
@@ -215,7 +212,7 @@ const HomePage = () => {
           </h2>
 
           <p className="text-lg text-white/80 max-w-xl mx-auto mb-8 leading-relaxed">
-            Find your perfect place to live quick, easy, and hassle-free. 
+            Find your perfect place to live quick, easy, and hassle-free.
             {userLocation?.city && (
               <span> Discover properties near you in {userLocation.city}.</span>
             )}
