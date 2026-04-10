@@ -7,11 +7,9 @@ import SuperSearchBar from '../../components/superSearch/SuperSearchBar';
 
 const Hero = () => {
   const navigate = useNavigate();
-  
+
   const handleSearchResults = async (results, query) => {
-    // Only navigate if the user actually searched for something.
-    // This prevents auto-navigating to /properties on initial component mount
-    // when the SuperSearchBar calls this with an empty query.
+
     if (query && query.trim() !== '') {
       navigate(`/properties?superSearch=${encodeURIComponent(query)}`);
     }
@@ -21,16 +19,16 @@ const Hero = () => {
     <div className="relative h-screen min-h-[700px] overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ 
+          style={{
             backgroundImage: 'url("https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")',
           }}
         />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-800/90 to-teal-700/80"></div>
       </div>
-      
+
       {/* Content */}
       <div className="relative h-full flex items-center">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,7 +40,7 @@ const Hero = () => {
                 Nepal's Trusted Property Finder & Booking Platform
               </span>
             </div>
-            
+
             {/* Main Heading */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6">
               <span className="block">Find Your Perfect</span>
@@ -50,31 +48,31 @@ const Hero = () => {
                 Living Space
               </span>
             </h1>
-            
+
             {/* Subtitle */}
             <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4">
-              Discover comfortable homes across Nepal with 
-              <span className="font-semibold text-teal-300"> RoomSathi</span> {" "} 
+              Discover comfortable homes across Nepal with
+              <span className="font-semibold text-teal-300"> RoomSathi</span> {" "}
               From cozy rooms to modern apartments, find your ideal flat
             </p>
-            
+
             {/* Super Search Bar */}
             <div className="mb-8 sm:mb-10 px-4 sm:px-0">
               <SuperSearchBar onSearchResults={handleSearchResults} />
             </div>
-            
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-16 px-4 sm:px-0">
-              <Link 
-                to="/properties" 
+              <Link
+                to="/properties"
                 className="group bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg shadow-lg hover:shadow-teal-500/30 transition-all duration-300 flex items-center justify-center w-full sm:w-auto"
               >
                 <FaSearch className="mr-2" />
                 Browse Properties
                 <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="group bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white hover:text-gray-900 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg transition-all duration-300 flex items-center justify-center w-full sm:w-auto"
               >
                 <FaHome className="mr-2" />
@@ -84,7 +82,7 @@ const Hero = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Scroll Indicator - Hidden on mobile */}
       <div className="hidden md:block absolute bottom-[100px] left-1/2 transform -translate-x-1/2 animate-bounce">
         <div className="w-8 h-12 border-2 border-white/50 rounded-full flex justify-center backdrop-blur-sm">
