@@ -952,7 +952,9 @@ export const getAllPropertiesAdmin = asyncHandler(async (req, res) => {
         ? 'Active'
         : property.status === 'pending'
           ? 'Pending'
-          : 'Inactive',
+          : property.status === 'rejected'
+            ? 'Rejected'
+            : 'Inactive',
     owner: property.sellerId?.name || 'Unknown',
     created: property.createdAt.toLocaleDateString(),
     images: property.images || [],
@@ -960,6 +962,9 @@ export const getAllPropertiesAdmin = asyncHandler(async (req, res) => {
     featured: property.featured || false,
     description: property.description,
     amenities: property.features || {},
+    verificationDocument: property.verificationDocument || null,
+    adminRemarks: property.adminRemarks || '',
+    verifiedAt: property.verifiedAt || null,
   }));
 
   res.json({
@@ -976,7 +981,7 @@ export const getAllPropertiesAdmin = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/properties/:id/status
 // @access  Private (Admin)
 export const updatePropertyStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
+  const { status, remarks } = req.body;
   const propertyId = req.params.id;
 
   const property = await Property.findById(propertyId);
@@ -999,12 +1004,44 @@ export const updatePropertyStatus = asyncHandler(async (req, res) => {
     throw new Error('Invalid status');
   }
 
+  // Require remarks when rejecting
+  if (status === 'rejected' && (!remarks || !remarks.trim())) {
+    res.status(400);
+    throw new Error('Remarks are required when rejecting a listing');
+  }
+
   property.status = status;
-  await property.save();
+
+  // Track verification details
+  if (status === 'available') {
+    // Approved
+    property.verifiedAt = new Date();
+    property.verifiedBy = req.user._id;
+    property.adminRemarks = remarks || 'Listing verified and approved.';
+  } else if (status === 'rejected') {
+    // Rejected with remarks
+    property.adminRemarks = remarks;
+    property.verifiedAt = new Date();
+    property.verifiedBy = req.user._id;
+  } else if (remarks) {
+    property.adminRemarks = remarks;
+  }
+
+  await property.save({ validateBeforeSave: false });
+
+  // Build notification message
+  let notificationMessage = '';
+  if (status === 'available') {
+    notificationMessage = `Your listing "${property.title}" has been verified and approved by admin. It is now live!`;
+  } else if (status === 'rejected') {
+    notificationMessage = `Your listing "${property.title}" has been disapproved. Remarks: ${remarks}`;
+  } else {
+    notificationMessage = `Your listing "${property.title}" status was updated to "${status}".`;
+  }
 
   // Notify seller when admin changes listing status
   await createNotification({
-    message: `Your listing "${property.title}" status was updated to "${status}".`,
+    message: notificationMessage,
     type: 'property',
     recipient: property.sellerId,
     link: `/seller/property/${property._id}`,
@@ -1017,6 +1054,7 @@ export const updatePropertyStatus = asyncHandler(async (req, res) => {
       id: property._id,
       title: property.title,
       status: property.status,
+      adminRemarks: property.adminRemarks,
     },
   });
 });

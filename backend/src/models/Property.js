@@ -86,6 +86,23 @@ const propertySchema = new mongoose.Schema({
     enum: ['available', 'rented', 'pending', 'rejected', 'sold', 'inactive'],
     default: 'pending',
   },
+  verificationDocument: {
+    type: String,
+    required: [true, 'Verification document is required for listing approval'],
+  },
+  adminRemarks: {
+    type: String,
+    default: '',
+  },
+  verifiedAt: {
+    type: Date,
+    default: null,
+  },
+  verifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+  },
   views: {
     total: { type: Number, default: 0 },
     loggedIn: { type: Number, default: 0 },

@@ -8,6 +8,8 @@ import {
   FiCheck,
   FiX,
   FiStar,
+  FiFileText,
+  FiEye,
 } from 'react-icons/fi';
 import Modal from '../shared/Modal';
 import ConfirmDialog from '../shared/ConfirmDialog';
@@ -34,6 +36,10 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
   const [selectedListings, setSelectedListings] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectRemarks, setRejectRemarks] = useState('');
+  const [rejectListingId, setRejectListingId] = useState(null);
+  const [showDocPreview, setShowDocPreview] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     type: 'Apartment',
@@ -178,7 +184,8 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             listing.id === listingId
               ? {
                 ...listing,
-                status: newStatus === 'available' ? 'Active' : 'Pending',
+                status: newStatus === 'available' ? 'Active' : newStatus === 'rejected' ? 'Rejected' : 'Pending',
+                adminRemarks: result.data?.adminRemarks || '',
               }
               : listing
           )
@@ -190,6 +197,42 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
       }
     } catch (error) {
       toast.error('Failed to update status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectWithRemarks = async () => {
+    if (!rejectRemarks.trim()) {
+      toast.error('Please provide remarks for rejection');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await updatePropertyStatus(rejectListingId, 'rejected', rejectRemarks);
+      if (result.success) {
+        setListings((prev) =>
+          prev.map((listing) =>
+            listing.id === rejectListingId
+              ? {
+                ...listing,
+                status: 'Rejected',
+                adminRemarks: rejectRemarks,
+              }
+              : listing
+          )
+        );
+        toast.success('Listing rejected with remarks');
+        setShowRejectDialog(false);
+        setRejectRemarks('');
+        setRejectListingId(null);
+        if (onRefresh) onRefresh();
+      } else {
+        toast.error(result.message || 'Failed to reject listing');
+      }
+    } catch (error) {
+      toast.error('Failed to reject listing');
     } finally {
       setLoading(false);
     }
@@ -545,6 +588,7 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
             <option value="all">All Statuses</option>
             <option value="Active">Active</option>
             <option value="Pending">Pending</option>
+            <option value="Rejected">Rejected</option>
           </select>
         </div>
       </div>
@@ -646,6 +690,12 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                     }`}
                 >
                   Created
+                </th>
+                <th
+                  className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
+                    }`}
+                >
+                  Verification
                 </th>
                 <th
                   className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'
@@ -787,17 +837,47 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${listing.status === 'Active'
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                            : listing.status === 'Rejected'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
                             : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                             }`}
                         >
                           {listing.status}
                         </span>
+                        {listing.status === 'Rejected' && listing.adminRemarks && (
+                          <p className={`text-xs mt-1 ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+                            Remarks: {listing.adminRemarks}
+                          </p>
+                        )}
                       </td>
                       <td
                         className={`px-6 py-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'
                           }`}
                       >
                         {listing.created}
+                      </td>
+                      <td
+                        className={`px-6 py-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`}
+                      >
+                        {listing.verificationDocument ? (
+                          <button
+                            onClick={() => setShowDocPreview(listing.verificationDocument)}
+                            className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                              isDark
+                                ? 'bg-blue-900/20 text-blue-400 hover:bg-blue-900/40'
+                                : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                            }`}
+                            title="View verification document"
+                          >
+                            <FiFileText className="h-3 w-3" />
+                            <span>View Doc</span>
+                          </button>
+                        ) : (
+                          <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                            No document
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
@@ -821,10 +901,12 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                                   ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400'
                                   : 'hover:bg-red-50 text-gray-500 hover:text-red-600'
                                   }`}
-                                title="Reject listing"
-                                onClick={() =>
-                                  handleStatusChange(listing.id, 'rejected')
-                                }
+                                title="Reject listing with remarks"
+                                onClick={() => {
+                                  setRejectListingId(listing.id);
+                                  setRejectRemarks('');
+                                  setShowRejectDialog(true);
+                                }}
                                 disabled={loading}
                               >
                                 <FiX className="h-4 w-4" />
@@ -904,7 +986,7 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
                 : (
                   <tr>
                     <td
-                      colSpan="8"
+                      colSpan="9"
                       className={`px-6 py-12 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'
                         }`}
                     >
@@ -1037,6 +1119,101 @@ const ListingTable = ({ listings: initialListings, isDark, onRefresh }) => {
         message="Are you sure you want to delete this listing? This action cannot be undone."
         isDark={isDark}
       />
+
+      {/* Reject With Remarks Dialog */}
+      {showRejectDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className={`w-full max-w-md mx-4 rounded-xl shadow-2xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className={`px-6 py-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Reject Listing
+              </h3>
+              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Please provide remarks explaining why this listing is being rejected. The seller will see these remarks.
+              </p>
+            </div>
+            <div className="px-6 py-4">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Remarks *
+              </label>
+              <textarea
+                value={rejectRemarks}
+                onChange={(e) => setRejectRemarks(e.target.value)}
+                rows={4}
+                placeholder="e.g., Verification document is unclear, property details don't match the document, etc."
+                className={`w-full px-4 py-3 rounded-lg border transition-colors ${isDark
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-red-500'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-red-500'
+                } focus:ring-2 focus:ring-red-500/20`}
+                required
+              />
+            </div>
+            <div className={`px-6 py-4 border-t flex justify-end space-x-3 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <button
+                onClick={() => {
+                  setShowRejectDialog(false);
+                  setRejectRemarks('');
+                  setRejectListingId(null);
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectWithRemarks}
+                disabled={!rejectRemarks.trim() || loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Rejecting...' : 'Reject Listing'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Preview Modal */}
+      {showDocPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowDocPreview(null)}>
+          <div className={`relative w-full max-w-2xl mx-4 rounded-xl shadow-2xl overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`} onClick={(e) => e.stopPropagation()}>
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Verification Document
+              </h3>
+              <button
+                onClick={() => setShowDocPreview(null)}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+              >
+                <FiX className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 flex justify-center">
+              <img
+                src={showDocPreview}
+                alt="Verification Document"
+                className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = '<div class="text-center py-8"><p class="text-gray-500">Unable to load document preview</p><a href="' + showDocPreview + '" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline mt-2 inline-block">Open in new tab</a></div>';
+                }}
+              />
+            </div>
+            <div className={`px-6 py-3 border-t text-center ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <a
+                href={showDocPreview}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline text-sm inline-flex items-center space-x-1"
+              >
+                <FiEye className="h-4 w-4" />
+                <span>Open full document in new tab</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

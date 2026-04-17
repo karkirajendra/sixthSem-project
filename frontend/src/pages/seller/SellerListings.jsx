@@ -117,6 +117,9 @@ const SellerListings = () => {
     (sum, prop) => sum + (prop.views?.total || 0),
     0
   );
+  const rejectedProperties = properties.filter(
+    (p) => p.status === 'rejected'
+  ).length;
 
   const stats = [
     {
@@ -150,6 +153,14 @@ const SellerListings = () => {
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-100',
+    },
+    {
+      title: 'Rejected',
+      value: rejectedProperties,
+      icon: FaTimes,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-100',
     },
   ];
 
@@ -205,6 +216,7 @@ const SellerListings = () => {
               <option value="">All Status</option>
               <option value="available">Available</option>
               <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
               <option value="sold">Sold</option>
               <option value="rented">Rented</option>
             </select>
@@ -469,13 +481,25 @@ const SellerListings = () => {
                               ? 'bg-green-100 text-green-800'
                               : property.status === 'pending'
                               ? 'bg-yellow-100 text-yellow-800'
-                              : property.status === 'sold'
+                              : property.status === 'rejected'
                               ? 'bg-red-100 text-red-800'
+                              : property.status === 'sold'
+                              ? 'bg-gray-100 text-gray-800'
                               : 'bg-gray-100 text-gray-800'
                           } capitalize`}
                         >
                           {property.status}
                         </span>
+                        {property.status === 'rejected' && property.adminRemarks && (
+                          <div className="mt-1 max-w-xs">
+                            <p className="text-xs text-red-600 bg-red-50 rounded px-2 py-1 border border-red-200">
+                              <strong>Remarks:</strong> {property.adminRemarks}
+                            </p>
+                          </div>
+                        )}
+                        {property.status === 'pending' && (
+                          <p className="text-xs text-yellow-600 mt-1">Awaiting admin verification</p>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col space-y-1">

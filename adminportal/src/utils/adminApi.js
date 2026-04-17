@@ -601,16 +601,19 @@ export const adminApi = {
     }
   },
 
-  updatePropertyStatus: async (propertyId, status) => {
+  updatePropertyStatus: async (propertyId, status, remarks = '') => {
     try {
       await ensureAuthenticated();
+
+      const body = { status };
+      if (remarks) body.remarks = remarks;
 
       const response = await fetch(
         `${API_URL}/api/admin/properties/${propertyId}/status`,
         {
           method: 'PUT',
           headers: createHeaders(true),
-          body: JSON.stringify({ status }),
+          body: JSON.stringify(body),
         }
       );
 

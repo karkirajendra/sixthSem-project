@@ -59,6 +59,8 @@ const AddProperty = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [verificationDocument, setVerificationDocument] = useState('');
   const [geocoding, setGeocoding] = useState(false);
   const [showCoordinates, setShowCoordinates] = useState(false);
   const [showMap, setShowMap] = useState(false);
@@ -803,6 +805,10 @@ const handleSubmit = async (e) => {
     errors.push('At least one image is required');
   }
 
+  if (!verificationDocument) {
+    errors.push('Verification document is required. Please upload ownership proof or ID document.');
+  }
+
   // Show all validation errors
   if (errors.length > 0) {
     errors.forEach(error => toast.error(error));
@@ -834,7 +840,7 @@ const handleSubmit = async (e) => {
         zipCode: propertyData.address.zipCode?.trim() || ''
       },
       availableFrom: new Date(propertyData.availableFrom).toISOString(),
-      status: 'available'
+      verificationDocument: verificationDocument,
     };
 
     // Add conditional fields based on type
@@ -860,8 +866,8 @@ const handleSubmit = async (e) => {
     const response = await createProperty(formattedPropertyData);
 
     if (response.success) {
-      toast.success('Property added successfully!', {
-        duration: 4000,
+      toast.success('Property submitted for admin verification! It will be listed once approved.', {
+        duration: 5000,
         position: 'top-right',
       });
 
@@ -1507,6 +1513,114 @@ const handleSubmit = async (e) => {
             </div>
           </div>
 
+          {/* Verification Document Section */}
+          <div>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <FiUpload className="h-5 w-5 text-amber-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Verification Document *
+              </h3>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-amber-800">
+                <strong>Important:</strong> Upload a document proving your ownership or authorization to list this property
+                (e.g., property ownership certificate, rental agreement, landlord ID, or official authorization letter).
+                Your listing will remain pending until an admin verifies and approves it.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {!verificationDocument ? (
+                <div className="border-2 border-dashed border-amber-300 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    id="verification-document"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    disabled={uploadingDoc}
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast.error('File size must be less than 5MB');
+                        return;
+                      }
+
+                      setUploadingDoc(true);
+                      try {
+                        const result = await uploadSingleImage(file);
+                        if (result.success && result.imageUrl) {
+                          const docUrl = result.imageUrl.startsWith('http')
+                            ? result.imageUrl
+                            : `${import.meta.env.VITE_APP_API_URL || 'http://localhost:5000'}${result.imageUrl.startsWith('/') ? '' : '/'}${result.imageUrl}`;
+                          setVerificationDocument(docUrl);
+                          toast.success('Verification document uploaded!');
+                        } else {
+                          toast.error(result.message || 'Failed to upload document');
+                        }
+                      } catch (error) {
+                        toast.error('Error uploading document');
+                      } finally {
+                        setUploadingDoc(false);
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="verification-document"
+                    className="cursor-pointer flex flex-col items-center space-y-2"
+                  >
+                    <FiUpload className="h-8 w-8 text-amber-500" />
+                    {uploadingDoc ? (
+                      <p className="text-sm text-gray-500">Uploading document...</p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-600 font-medium">
+                          Click to upload verification document
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Supports: JPG, PNG, WebP, PDF (Max 5MB)
+                        </p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-4 bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={verificationDocument}
+                      alt="Verification Document"
+                      className="h-20 w-20 object-cover rounded-lg border border-green-300"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div className="h-20 w-20 bg-green-100 rounded-lg items-center justify-center hidden">
+                      <FiUpload className="h-8 w-8 text-green-600" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-800">Document uploaded successfully</p>
+                    <p className="text-xs text-green-600">This will be reviewed by admin for verification</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVerificationDocument('')}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Remove document"
+                  >
+                    <FiX className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Features Section */}
           <div>
             <h3 className="text-xl font-semibold text-gray-900 mb-6">
@@ -1601,7 +1715,7 @@ const handleSubmit = async (e) => {
               ) : (
                 <>
                   <FiSave className="h-4 w-4" />
-                  <span>Create Property</span>
+                  <span>Submit for Verification</span>
                 </>
               )}
             </button>

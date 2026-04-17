@@ -190,22 +190,24 @@ export const createProperty = asyncHandler(async (req, res) => {
     ...req.body,
     contactPhone,
     sellerId: req.user._id,
+    status: 'pending', // Always pending until admin approves
   };
 
   console.log(propertyData);
 
   const property = await Property.create(propertyData);
 
-  // Notify seller and admins about newly created listing
+  // Notify seller that listing is pending verification
   await createNotification({
-    message: `Your listing "${property.title}" has been created.`,
+    message: `Your listing "${property.title}" has been submitted and is pending admin verification.`,
     type: 'property',
     recipient: req.user._id,
     link: `/seller/property/${property._id}`,
   });
 
+  // Notify admins about newly submitted listing
   await createNotification({
-    message: `New property "${property.title}" was submitted by ${req.user.name}.`,
+    message: `New property "${property.title}" was submitted by ${req.user.name} and requires verification.`,
     type: 'property',
     recipient: null,
     link: '/properties',
