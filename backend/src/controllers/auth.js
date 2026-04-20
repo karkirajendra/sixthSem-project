@@ -33,9 +33,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Authenticate user & get token
-// @route   POST /api/auth/login
-// @access  Public
+
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -64,7 +62,6 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error('Invalid credentials');
   }
 
-  // Reset login attempts on successful login
   if (user.loginAttempts > 0) {
     await user.resetLoginAttempts();
   }
